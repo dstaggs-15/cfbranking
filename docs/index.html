@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>CFB Top 25 — Computer Rankings</title>
+  <title>CFB Top 25 — Unbiased, Metrics-First</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -13,13 +13,15 @@
       --muted: #9fb0c3;
       --accent: #37d0b2;
       --ring: #66aaff44;
-      --shadow: 0 10px 20px #00000055, inset 0 1px 0 #ffffff10;
+      --shadow: 0 10px 20px #00000055, inset 0 1px 0 #ffffff12;
     }
     * { box-sizing: border-box; }
     html, body {
       margin: 0;
       color: var(--text);
-      background: radial-gradient(1200px 600px at 10% -10%, #0d1320, #091019), #090e14;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #0d1320, #091019),
+        #090e14;
       font: 16px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji";
     }
     .container { max-width: 1000px; margin: 0 auto; padding: 0 16px; }
@@ -34,6 +36,7 @@
     }
     .site-header .container { padding:14px 16px; }
     h1 { font-size:1.25rem; margin:0; letter-spacing:.25px; }
+
     .btn {
       border: 1px solid #ffffff1a; color: var(--text);
       background: linear-gradient(180deg, #1a2330, #121924);
@@ -41,15 +44,13 @@
     }
     .btn:hover { border-color:#ffffff33; }
     .btn:focus { outline:3px solid var(--ring); outline-offset:2px; }
-    .btn-icon { border:none; background:transparent; color:var(--muted); font-size:1.1rem; cursor:pointer; }
-    .btn-icon:hover { color:var(--text); }
 
     .meta { margin: 22px 0; color: var(--muted); display:flex; gap:18px; flex-wrap:wrap; }
-    .rank-list { list-style:none; padding:0; margin:0 0 80px; display:grid; gap:12px; }
 
+    .rank-list { list-style:none; padding:0; margin:0 0 80px; display:grid; gap:12px; }
     .rank-item {
       background: linear-gradient(180deg, #0d1520, #0b1017);
-      border: 1px solid #ffffff10; border-radius:14px; box-shadow: var(--shadow);
+      border: 1px solid #ffffff14; border-radius:14px; box-shadow: var(--shadow);
       padding: 12px;
     }
     .rank-head { display:grid; grid-template-columns: 36px 1fr auto; gap:10px; align-items:center; }
@@ -58,15 +59,20 @@
       border-radius:8px; background: linear-gradient(180deg, #111a27, #0e1620);
       border:1px solid #ffffff12; color:#cbd7e6; font-weight:700;
     }
+
     .team-pill {
       display:inline-flex; align-items:center; gap:10px; padding:10px 12px;
-      border-radius:12px; background:#122033; border:1px solid #ffffff12;
-      cursor:pointer; transition: transform .06s ease;
+      border-radius:12px;
+      border:1px solid #ffffff20;
+      cursor:pointer; transition: transform .06s ease, box-shadow .2s ease;
+      background: #122033; /* default, overridden inline */
+      box-shadow: inset 0 0 0 9999px rgba(255,255,255,0.0); /* for contrast overlay */
     }
     .team-pill:hover { transform: translateY(-1px); }
     .team-name { font-weight:800; letter-spacing:.2px; }
     .record { color:#a9b9cd; margin-left:6px; }
     .score { font-weight:800; color: var(--accent); }
+
     .details { margin-top:12px; border-top:1px dashed #ffffff1a; padding-top:12px; display:none; }
     .grid { display:grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap:12px; }
     .card { background: var(--card); border:1px solid #ffffff10; border-radius:12px; padding:12px; }
@@ -74,6 +80,15 @@
     .kv { display:grid; grid-template-columns: 1fr auto; gap:6px; }
     .kv .k { color:#a9b9cd; }
     .kv .v { font-weight:800; text-align:right; }
+
+    /* mini bars for advanced metrics */
+    .bar { height:8px; background:#0d1a28; border:1px solid #ffffff12; border-radius:999px; position:relative; overflow:hidden; }
+    .bar-inner { position:absolute; top:0; bottom:0; width:50%; left:50%; transform: translateX(-50%); background:#1e2f44; }
+    .bar-fill {
+      position:absolute; top:0; bottom:0;
+      background: linear-gradient(90deg, #27496b, #37d0b2);
+    }
+    .bar-label { display:flex; justify-content:space-between; font-size:12px; color:#a9b9cd; margin-top:6px; }
 
     dialog { border:none; padding:0; background:transparent; }
     .modal {
@@ -101,70 +116,56 @@
     <ol id="rank-list" class="rank-list"></ol>
   </main>
 
-  <!-- Big in-depth explainer (behind a click) -->
+  <!-- In-depth explainer, behind a click -->
   <dialog id="explainer">
     <div class="modal">
       <div class="modal-header">
         <h2>How this ranking works — detailed, plain English</h2>
-        <button id="close-explainer" class="btn-icon" aria-label="Close explainer">✕</button>
+        <button id="close-explainer" class="btn" aria-label="Close explainer">Close</button>
       </div>
       <div class="modal-body">
-        <p class="notice"><strong>No polls. No preseason bias.</strong> We rank teams using only games that have actually been played this season. The goal is to reward results on the field against real competition.</p>
+        <p class="notice"><strong>No polls. No preseason bias.</strong> Only this season’s games. We reward results, schedule strength, and avoiding bad losses. Head-to-head matters when records match.</p>
 
-        <h3>1) Which teams are included?</h3>
+        <h3>1) Who’s in?</h3>
         <ul>
-          <li>Only <strong>FBS</strong> programs (the top division of college football) are ranked.</li>
-          <li>Each FBS team’s <strong>record</strong> (wins–losses) includes every game that team played, whether the opponent was FBS or FCS. This keeps the record you see here consistent with what’s shown on TV or score sites.</li>
-          <li>However, the résumé math (below) only uses <strong>FBS vs FBS</strong> games, because those are comparable schedules.</li>
+          <li>Only <strong>FBS</strong> programs are ranked.</li>
+          <li>The <strong>record</strong> (wins–losses) shows every game an FBS team played (even if the opponent was FCS) so it matches what fans see elsewhere.</li>
+          <li>The résumé math below uses only <strong>FBS vs FBS</strong> games to fairly compare schedules.</li>
         </ul>
 
-        <h3>2) Primary ordering: “loss buckets”</h3>
-        <p>Teams are grouped by how many losses they have. Fewer losses always come first. For example, every 5–1 team starts ahead of every 4–2 team before any tiebreakers.</p>
+        <h3>2) Loss buckets come first</h3>
+        <p>Teams are grouped by total losses. Fewer losses rank ahead by default.</p>
 
-        <h3>3) Head-to-head tiebreaker (inside the same loss bucket)</h3>
-        <p>If two teams in the <em>same loss group</em> played each other, the game’s winner is placed ahead of the loser. This avoids the “we beat you but you rank above us” nonsense inside equal loss groups.</p>
+        <h3>3) Head-to-head inside buckets</h3>
+        <p>If two teams in the same loss bucket played each other, the winner goes ahead of the loser.</p>
 
-        <h3>4) Composite score — orders teams within each loss bucket</h3>
-        <p>After enforcing head-to-head, we order the remaining ties using a composite score built from football-common-sense inputs. Here is each piece, in plain terms and exactly how it’s used:</p>
+        <h3>4) Composite score (orders ties inside buckets)</h3>
         <ul>
-          <li><strong>Winning percentage (50%)</strong> — win the games you play. Calculated as wins divided by total games played.</li>
-          <li><strong>Strength of schedule (22%)</strong> — how strong your schedule is, using only FBS vs FBS games. We compute each opponent’s FBS winning percentage, then take the average across your FBS opponents. This yields a number near 0.50 for an average schedule; higher means tougher.</li>
-          <li><strong>Average scoring margin (10%)</strong> — by how many points you outscore opponents on average. We cap its impact so blowouts don’t overwhelm the other factors.</li>
-          <li><strong>Quality wins (bonus)</strong> — each win over a roughly Top-40 FBS opponent adds a small amount to your score. Top-40 is based on a provisional seed to avoid circular math.</li>
-          <li><strong>Bad losses (penalty)</strong> — each loss to a roughly 80-plus opponent subtracts from your score.</li>
-          <li><strong>Tiny efficiency seasoning (very small tiebreaker)</strong> — two per-play metrics:
+          <li><strong>Winning percentage (50%)</strong> — win the games you play.</li>
+          <li><strong>Strength of schedule (22%)</strong> — average FBS-opponent winning percentage. 0.50 is average; higher means tougher.</li>
+          <li><strong>Average scoring margin (10%)</strong> — points scored minus points allowed per game (capped influence so blowouts don’t dominate).</li>
+          <li><strong>Quality wins</strong> — small bonus for beating roughly Top-40 opponents.</li>
+          <li><strong>Bad losses</strong> — small penalty for losing to roughly 80+ teams.</li>
+          <li><strong>Tiny efficiency tiebreakers</strong> — two “per-play” ideas:
             <ul>
-              <li><strong>Predicted Points Added (PPA)</strong>, offense minus defense — how much your offense increases expected points and how much your defense decreases them. Positive differential is good.</li>
-              <li><strong>Success Rate</strong>, offense minus defense — how often your plays meet the down-and-distance goal compared to opponents’ success against you. Higher is better.</li>
+              <li><strong>Predicted Points Added (PPA)</strong>: how much your plays change expected points. Offense PPA up is good; Defense PPA down (more negative) is good.</li>
+              <li><strong>Success Rate</strong>: how often a play achieves the down-and-distance goal. Higher on offense, lower allowed on defense is better.</li>
             </ul>
-            These add a gentle nudge in tight cases; they are not decisive by themselves.
+            These only nudge close calls; they don’t carry the ranking.
           </li>
         </ul>
 
-        <h3>5) Why you won’t see “random” teams up top</h3>
-        <ul>
-          <li><strong>Schedule strength</strong> and <strong>bad-loss penalties</strong> make soft slates and stumbles show up where they should.</li>
-          <li><strong>Head-to-head</strong> inside the same loss group preserves common-sense ordering when teams actually met.</li>
-        </ul>
-
-        <h3>6) What the advanced numbers shown on a team card mean</h3>
-        <ul>
-          <li><strong>PPA (Predicted Points Added)</strong> — Every play shifts the expected points for that drive. Offense PPA says how much your offense increases that expectation per play; Defense PPA says how much your defense reduces the opponent’s expectation. We show these as <em>z-scores within this Top 25 page</em>: 0.00 means average among these 25; +1.00 is one standard deviation better than the group average.</li>
-          <li><strong>Success Rate</strong> — The share of plays that “succeed” (gain enough yards to stay ahead of the chains). Again shown as z-scores relative to the Top 25 on the page.</li>
-        </ul>
-
-        <h3>7) TL;DR</h3>
-        <p>Win a lot. Do it against good teams. Avoid bad losses. Score more than you allow. If two teams have the same number of losses and played each other, the winner goes ahead. That’s it — no brand bias, no preseason inertia.</p>
+        <h3>5) Quick translation</h3>
+        <p>Win a lot, against good teams, avoid bad stumbles, and outscore opponents consistently. If two teams with the same losses played each other, the winner sits on top. That’s it.</p>
       </div>
     </div>
   </dialog>
 
   <script>
     // ====== CONFIG ======
-    // If your site lives somewhere else, change this:
-    const DATA_URL = "/cfbranking/data/rankings.json?v=3";
+    const DATA_URL = "/cfbranking/data/rankings.json?v=4";
 
-    // Team colors (extend as you like)
+    // Team colors (extend freely)
     const TEAM_COLORS = {
       "Alabama": "#9e0b0f","Georgia":"#cc0000","Ohio State":"#bb0000","Michigan":"#00274c",
       "Texas":"#bf5700","Oregon":"#004f39","Florida State":"#782f40","Notre Dame":"#0c2340",
@@ -172,13 +173,12 @@
       "Oklahoma":"#841617","Tennessee":"#ff8200","Auburn":"#0a1f44","Penn State":"#041e42",
       "USC":"#990000","Utah":"#cc0000","Texas A&M":"#500000","Washington":"#4b2e83",
       "Florida":"#0021a5","North Carolina":"#7BAFD4","Duke":"#012169","Kansas State":"#512888",
-      "Missouri":"#f1b82d","Oklahoma State":"#ff7f00","Texas Tech":"#cc0000","Ole Miss":"#14213d",
-      "Oregon State":"#dc4405","Wisconsin":"#c5050c","Iowa":"#000000","Nebraska":"#e41c38",
-      "UCLA":"#3284bf","Arizona":"#ab0520","Arizona State":"#8e2a2a","Louisville":"#ad0000",
-      "North Carolina State":"#cc0000","Virginia Tech":"#630031","Washington State":"#981e32",
-      "Kansas":"#0051ba","Kentucky":"#0033a0","Baylor":"#003015","TCU":"#4d1979","Ole Miss":"#14213d",
-      "Ole Miss Rebels":"#14213d","Mississippi State":"#660000","South Carolina":"#73000a",
-      "Arkansas":"#9d2235","Ole Miss":"#14213d","Tulane":"#005837","UCF":"#ba9b37"
+      "Missouri":"#f1b82d","Oklahoma State":"#ff7f00","Texas Tech":"#cc0000","Oregon State":"#dc4405",
+      "Wisconsin":"#c5050c","Iowa":"#000000","Nebraska":"#e41c38","UCLA":"#3284bf",
+      "Arizona":"#ab0520","Arizona State":"#8e2a2a","Louisville":"#ad0000","NC State":"#cc0000",
+      "Virginia Tech":"#630031","Washington State":"#981e32","Kansas":"#0051ba","Kentucky":"#0033a0",
+      "Baylor":"#003015","TCU":"#4d1979","Mississippi State":"#660000","South Carolina":"#73000a",
+      "Arkansas":"#9d2235","Tulane":"#005837","UCF":"#ba9b37"
     };
 
     // ====== UTIL ======
@@ -187,7 +187,33 @@
     function mean(a){ return a.length ? a.reduce((x,y)=>x+y,0)/a.length : 0; }
     function std(a){ if(a.length<2) return 1; const m=mean(a); const v=mean(a.map(x=>(x-m)*(x-m))); return v===0?1:Math.sqrt(v); }
     function z(val, arr){ const s=std(arr), m=mean(arr); return s===0?0:(val-m)/s; }
-    function colorFor(team){ return TEAM_COLORS[team] || "#122033"; }
+    function clamp(x,min,max){ return Math.max(min, Math.min(max, x)); }
+
+    // Color helpers: make pills readable on dark theme regardless of team color
+    function hexToRgb(hex){
+      const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || "#122033");
+      if(!m) return {r:18,g:32,b:51};
+      return { r: parseInt(m[1],16), g: parseInt(m[2],16), b: parseInt(m[3],16) };
+    }
+    function luminance({r,g,b}){
+      const a=[r,g,b].map(v=>{
+        v/=255;
+        return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4);
+      });
+      return 0.2126*a[0]+0.7152*a[1]+0.0722*a[2];
+    }
+    function pillStyles(team){
+      const base = TEAM_COLORS[team] || "#3a6ea6";
+      const rgb = hexToRgb(base);
+      const L = luminance(rgb);           // 0..1
+      const textColor = (L < 0.45) ? "#f8fbff" : "#0b1220"; // ensure readable text
+      const bg = `rgba(${rgb.r},${rgb.g},${rgb.b},0.33)`;   // less dark than before
+      const border = `rgba(${rgb.r},${rgb.g},${rgb.b},0.65)`;
+      // slight overlay if the color is very light, to avoid washed-out look
+      const overlayAlpha = (L > 0.75) ? 0.08 : 0.0;
+      const overlay = `inset 0 0 0 9999px rgba(0,0,0,${overlayAlpha})`;
+      return { base, bg, border, textColor, overlay };
+    }
 
     async function load() {
       const res = await fetch(DATA_URL, { cache:"no-store" });
@@ -204,31 +230,55 @@
     }
 
     function buildZMap(teams){
-      const a = (k)=>teams.map(t=>t[k] ?? 0);
-      const m = {};
-      const cols = ["off_ppa","def_ppa","off_sr","def_sr"];
-      const bases = Object.fromEntries(cols.map(k=>[k,a(k)]));
+      const arr = k => teams.map(t => t[k] ?? 0);
+      const bases = {
+        off_ppa: arr("off_ppa"), def_ppa: arr("def_ppa"),
+        off_sr:  arr("off_sr"),  def_sr:  arr("def_sr")
+      };
+      const map = {};
       for(const t of teams){
-        m[t.team] = {
+        map[t.team] = {
           off_ppa: z(t.off_ppa ?? 0, bases.off_ppa),
           def_ppa: z(t.def_ppa ?? 0, bases.def_ppa),
           off_sr:  z(t.off_sr  ?? 0, bases.off_sr),
           def_sr:  z(t.def_sr  ?? 0, bases.def_sr),
         };
       }
-      return m;
+      return map;
+    }
+
+    // bar position: z in [-2,2] mapped to 0..100 (center line at 50)
+    function zToPct(zv){ return (clamp(zv,-2,2) + 2) / 4 * 100; }
+
+    function barHTML(zv){
+      const pct = zToPct(zv);
+      const from = (pct >= 50) ? 50 : pct;    // start of fill
+      const width = (pct >= 50) ? (pct - 50) : (50 - pct);
+      const left = (pct >= 50) ? 50 : pct;
+      return `
+        <div class="bar">
+          <div class="bar-inner"></div>
+          <div class="bar-fill" style="left:${left}%; width:${width}%"></div>
+        </div>
+        <div class="bar-label"><span>Below avg</span><span>Above avg</span></div>
+      `;
     }
 
     function rowHTML(t, zmap){
-      const color = colorFor(t.team);
       const z = zmap[t.team] || {off_ppa:0,def_ppa:0,off_sr:0,def_sr:0};
+      const styles = pillStyles(t.team);
+      const winPct = (t.games ? (t.wins / t.games) : 0);
+      const fbsGames = (t.fbs_wins ?? 0) + (t.fbs_losses ?? 0);
+      const fbsPct = fbsGames ? (t.fbs_wins / fbsGames) : null;
+
       return `
         <li class="rank-item" data-team="${t.team}">
           <div class="rank-head">
             <div class="rank-num">${t.rank}</div>
-            <button class="team-pill" style="background:${color}22;border-color:${color}66;">
-              <span class="team-name" style="color:${color}">${t.team}</span>
-              <span class="record">(${t.wins}-${t.losses})</span>
+            <button class="team-pill"
+              style="background:${styles.bg};border-color:${styles.border};box-shadow: ${styles.overlay};">
+              <span class="team-name" style="color:${styles.textColor}">${t.team}</span>
+              <span class="record" style="color:${styles.textColor}99">(${t.wins}-${t.losses})</span>
             </button>
             <div class="score">${fmt(t.score,3)}</div>
           </div>
@@ -244,16 +294,27 @@
               <div class="card">
                 <h4>Record</h4>
                 <div class="kv"><div class="k">Overall</div><div class="v">${t.wins}-${t.losses}</div></div>
+                <div class="kv"><div class="k">Win Percentage</div><div class="v">${fmt(winPct*100,1)}%</div></div>
+                <div class="kv"><div class="k">FBS Win Percentage</div><div class="v">${fbsPct===null?"—":fmt(fbsPct*100,1)+"%"}</div></div>
                 <div class="kv"><div class="k">Points For</div><div class="v">${t.points_for}</div></div>
                 <div class="kv"><div class="k">Points Against</div><div class="v">${t.points_against}</div></div>
-                <div class="kv"><div class="k">FBS Wins / Losses</div><div class="v">${t.fbs_wins ?? "—"}${t.fbs_wins!==undefined?("-"+(t.fbs_losses??"—")):""}</div></div>
               </div>
               <div class="card">
-                <h4>Advanced (z-scores within this Top 25)</h4>
+                <h4>Advanced (how to read this)</h4>
                 <div class="kv"><div class="k">Offense: Predicted Points Added</div><div class="v">${fmt(z.off_ppa,2)}</div></div>
+                ${barHTML(z.off_ppa)}
                 <div class="kv"><div class="k">Defense: Predicted Points Added</div><div class="v">${fmt(z.def_ppa,2)}</div></div>
+                ${barHTML(z.def_ppa)}
                 <div class="kv"><div class="k">Offense: Success Rate</div><div class="v">${fmt(z.off_sr,2)}</div></div>
+                ${barHTML(z.off_sr)}
                 <div class="kv"><div class="k">Defense: Success Rate</div><div class="v">${fmt(z.def_sr,2)}</div></div>
+                ${barHTML(z.def_sr)}
+                <p style="margin-top:10px;color:#a9b9cd">
+                  These numbers are <strong>z-scores</strong> compared to the Top-25 on this page (0.00 = average here).
+                  <em>Positive on offense</em> means better than average. For defense:
+                  <em>more negative PPA is better</em> (you reduce opponents’ expected points),
+                  and <em>more negative Success Rate</em> means you allow fewer successful plays.
+                </p>
               </div>
             </div>
           </div>
@@ -272,7 +333,6 @@
     }
 
     async function main(){
-      // Explainer open/close
       $("#open-explainer").addEventListener("click", ()=> $("#explainer").showModal());
       $("#close-explainer").addEventListener("click", ()=> $("#explainer").close());
 
