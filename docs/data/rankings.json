@@ -1,6 +1,6 @@
 {
   "season": 2025,
-  "last_build_utc": "2025-10-06T17:56:31.855817",
+  "last_build_utc": "2025-10-06T18:09:28.021455",
   "notes": {
     "method": "Loss buckets > in-bucket head-to-head > composite (Win%, SoS, Quality Wins, Bad Losses, Margin). Records include FCS games; r\u00e9sum\u00e9 counts only FBS vs FBS.",
     "weeks_included": "regular season to date",
@@ -25,7 +25,11 @@
       "sos": 0.637,
       "avg_margin": 38.2,
       "qual_wins": 2,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.429537508770872,
+      "def_ppa": -0.027920131570515327,
+      "off_sr": 0.5730337078651685,
+      "def_sr": 0.2900763358778626
     },
     {
       "rank": 2,
@@ -39,7 +43,11 @@
       "sos": 0.562,
       "avg_margin": 32.4,
       "qual_wins": 1,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.38060981880905104,
+      "def_ppa": -0.10278241132451021,
+      "off_sr": 0.5723905723905723,
+      "def_sr": 0.33574007220216606
     },
     {
       "rank": 3,
@@ -53,7 +61,11 @@
       "sos": 0.375,
       "avg_margin": 37.4,
       "qual_wins": 2,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.3795030511039862,
+      "def_ppa": -0.056419870413769425,
+      "off_sr": 0.5227882037533512,
+      "def_sr": 0.3076923076923077
     },
     {
       "rank": 4,
@@ -67,7 +79,11 @@
       "sos": 0.475,
       "avg_margin": 26.6,
       "qual_wins": 1,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.2487657782125028,
+      "def_ppa": -0.11072696760855553,
+      "off_sr": 0.4899713467048711,
+      "def_sr": 0.22826086956521738
     },
     {
       "rank": 5,
@@ -81,7 +97,11 @@
       "sos": 0.525,
       "avg_margin": 21.4,
       "qual_wins": 1,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.28645103131185057,
+      "def_ppa": 0.024903865184622894,
+      "off_sr": 0.5089820359281437,
+      "def_sr": 0.34726688102893893
     },
     {
       "rank": 6,
@@ -95,7 +115,11 @@
       "sos": 0.44,
       "avg_margin": 21.8,
       "qual_wins": 2,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.35312057092858434,
+      "def_ppa": 0.11263917189585868,
+      "off_sr": 0.5093833780160858,
+      "def_sr": 0.38580246913580246
     },
     {
       "rank": 7,
@@ -109,7 +133,11 @@
       "sos": 0.338,
       "avg_margin": 30.6,
       "qual_wins": 0,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.37527651989082755,
+      "def_ppa": -0.016503898956559408,
+      "off_sr": 0.5465994962216625,
+      "def_sr": 0.3114754098360656
     },
     {
       "rank": 8,
@@ -123,7 +151,11 @@
       "sos": 0.25,
       "avg_margin": 34.4,
       "qual_wins": 0,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.46180394879489706,
+      "def_ppa": 0.011182980556836397,
+      "off_sr": 0.524390243902439,
+      "def_sr": 0.3591549295774648
     },
     {
       "rank": 9,
@@ -137,7 +169,11 @@
       "sos": 0.358,
       "avg_margin": 26.2,
       "qual_wins": 0,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.3627454969347668,
+      "def_ppa": -0.03800415923125273,
+      "off_sr": 0.49846153846153846,
+      "def_sr": 0.3651877133105802
     },
     {
       "rank": 10,
@@ -151,7 +187,11 @@
       "sos": 0.51,
       "avg_margin": 13.8,
       "qual_wins": 0,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.2598316169859252,
+      "def_ppa": 0.07347623154846766,
+      "off_sr": 0.4581005586592179,
+      "def_sr": 0.34394904458598724
     },
     {
       "rank": 11,
@@ -165,7 +205,11 @@
       "sos": 0.35,
       "avg_margin": 24.8,
       "qual_wins": 0,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.34416777586165975,
+      "def_ppa": 0.0980253515252321,
+      "off_sr": 0.5183098591549296,
+      "def_sr": 0.37362637362637363
     },
     {
       "rank": 12,
@@ -179,7 +223,11 @@
       "sos": 0.433,
       "avg_margin": 15.8,
       "qual_wins": 0,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.24570121002859438,
+      "def_ppa": 0.12245392307924881,
+      "off_sr": 0.4728434504792332,
+      "def_sr": 0.3836477987421384
     },
     {
       "rank": 13,
@@ -193,7 +241,11 @@
       "sos": 0.24,
       "avg_margin": 24.3,
       "qual_wins": 0,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.31063110479551564,
+      "def_ppa": 0.06905506742129751,
+      "off_sr": 0.48284313725490197,
+      "def_sr": 0.3848101265822785
     },
     {
       "rank": 14,
@@ -207,7 +259,11 @@
       "sos": 0.212,
       "avg_margin": 17.8,
       "qual_wins": 0,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.4739401768604473,
+      "def_ppa": 0.16716533057512103,
+      "off_sr": 0.5445859872611465,
+      "def_sr": 0.39144736842105265
     },
     {
       "rank": 15,
@@ -221,7 +277,11 @@
       "sos": 0.175,
       "avg_margin": 9.6,
       "qual_wins": 0,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.26574103345483446,
+      "def_ppa": 0.11020536662855981,
+      "off_sr": 0.47634069400630913,
+      "def_sr": 0.4415954415954416
     },
     {
       "rank": 16,
@@ -235,7 +295,11 @@
       "sos": 0.61,
       "avg_margin": 16.6,
       "qual_wins": 1,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.2979579814539462,
+      "def_ppa": 0.045014285584303614,
+      "off_sr": 0.46984126984126984,
+      "def_sr": 0.3867069486404834
     },
     {
       "rank": 17,
@@ -249,7 +313,11 @@
       "sos": 0.59,
       "avg_margin": 20.4,
       "qual_wins": 2,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.37535891410422856,
+      "def_ppa": 0.12060085388961003,
+      "off_sr": 0.471976401179941,
+      "def_sr": 0.39705882352941174
     },
     {
       "rank": 18,
@@ -263,7 +331,11 @@
       "sos": 0.562,
       "avg_margin": 26.2,
       "qual_wins": 1,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.29765298870694384,
+      "def_ppa": 0.025361970079327636,
+      "off_sr": 0.5129682997118156,
+      "def_sr": 0.3586206896551724
     },
     {
       "rank": 19,
@@ -277,7 +349,11 @@
       "sos": 0.562,
       "avg_margin": 19.6,
       "qual_wins": 1,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.3718701066947883,
+      "def_ppa": 0.14018459209435533,
+      "off_sr": 0.5258358662613982,
+      "def_sr": 0.4084967320261438
     },
     {
       "rank": 20,
@@ -291,7 +367,11 @@
       "sos": 0.6,
       "avg_margin": 18.4,
       "qual_wins": 1,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.45727984615873585,
+      "def_ppa": 0.17412726985863394,
+      "off_sr": 0.5389830508474577,
+      "def_sr": 0.42042042042042044
     },
     {
       "rank": 21,
@@ -305,7 +385,11 @@
       "sos": 0.61,
       "avg_margin": 13.0,
       "qual_wins": 1,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.26917492624041284,
+      "def_ppa": 0.23698589276342366,
+      "off_sr": 0.46685082872928174,
+      "def_sr": 0.46564885496183206
     },
     {
       "rank": 22,
@@ -319,7 +403,11 @@
       "sos": 0.5,
       "avg_margin": 19.2,
       "qual_wins": 1,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.3272389270189685,
+      "def_ppa": 0.16528395666225873,
+      "off_sr": 0.46756152125279643,
+      "def_sr": 0.4074074074074074
     },
     {
       "rank": 23,
@@ -333,7 +421,11 @@
       "sos": 0.6,
       "avg_margin": 14.8,
       "qual_wins": 1,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.18942855167901396,
+      "def_ppa": 0.03708403726847624,
+      "off_sr": 0.44410876132930516,
+      "def_sr": 0.37142857142857144
     },
     {
       "rank": 24,
@@ -347,7 +439,11 @@
       "sos": 0.55,
       "avg_margin": 16.2,
       "qual_wins": 1,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.265984016196546,
+      "def_ppa": 0.11109541537906682,
+      "off_sr": 0.5,
+      "def_sr": 0.3717948717948718
     },
     {
       "rank": 25,
@@ -361,7 +457,11 @@
       "sos": 0.5,
       "avg_margin": 22.0,
       "qual_wins": 0,
-      "bad_losses": 0
+      "bad_losses": 0,
+      "off_ppa": 0.3928702127550788,
+      "def_ppa": 0.10056267687151443,
+      "off_sr": 0.5240641711229946,
+      "def_sr": 0.4228723404255319
     }
   ]
 }
