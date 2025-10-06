@@ -1,4 +1,3 @@
-// If JSON fields change later, adjust renderCard() only.
 function renderCard(entry, index){
   const sosPct = (entry.sos ?? 0) * 100;
   const avgMargin = (entry.avg_margin ?? entry.avgMargin ?? 0);
@@ -28,29 +27,31 @@ async function main(){
   const updated = document.getElementById("updated");
   const grid = document.getElementById("rankings");
   const empty = document.getElementById("empty");
+  const errorBox = document.getElementById("error");
   const aboutBtn = document.getElementById("about-toggle");
   const about = document.getElementById("about");
 
-  aboutBtn.addEventListener("click", () => {
-    about.classList.toggle("hidden");
-  });
+  aboutBtn.addEventListener("click", () => about.classList.toggle("hidden"));
 
-  // cache-bust fetch to avoid Pages caching old JSON
-  const url = `./data/rankings.json?v=${Date.now()}`;
+  // Verify CSS/JS path: these should 200
+  // console.log("CSS path test /script running…");
+
+  const jsonUrl = `data/rankings.json?cb=${Date.now()}`;
   let data;
   try{
-    const res = await fetch(url, {cache: "no-store"});
-    if(!res.ok){
-      throw new Error(`HTTP ${res.status}`);
-    }
+    const res = await fetch(jsonUrl, {cache: "no-store"});
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
     data = await res.json();
   }catch(err){
-    empty.classList.remove("hidden");
-    empty.textContent = `Could not load rankings.json (${err.message}).`;
+    errorBox.classList.remove("hidden");
+    errorBox.textContent = `Could not load data/rankings.json (${err.message}). Make sure the file exists at /cfbranking/data/rankings.json`;
     return;
   }
 
-  updated.textContent = `Last updated ${new Date(data.last_build_utc).toLocaleString()} • Season ${data.season}`;
+  // Update banner
+  try{
+    updated.textContent = `Last updated ${new Date(data.last_build_utc).toLocaleString()} • Season ${data.season}`;
+  }catch{}
 
   const list = Array.isArray(data.top25) ? data.top25 : [];
   if(list.length === 0){
@@ -60,7 +61,7 @@ async function main(){
 
   grid.innerHTML = list.map(renderCard).join("");
 
-  // click/keyboard expand for each card
+  // Expand/collapse per card (click or Enter/Space)
   grid.querySelectorAll(".card").forEach(card => {
     const details = card.querySelector(".details");
     const toggle = () => {
