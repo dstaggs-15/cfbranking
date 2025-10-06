@@ -25,11 +25,6 @@ from typing import Dict, List, Any, Tuple, Optional
 # -------------------- CONFIG / WEIGHTS ----------------------
 
 def get_year() -> int:
-    """
-    Robust YEAR handling:
-    - If env YEAR is numeric, use it
-    - Otherwise use the current calendar year
-    """
     y = os.getenv("YEAR")
     if y and y.strip().isdigit():
         return int(y)
@@ -46,89 +41,84 @@ HEADERS = {"Authorization": f"Bearer {CFBD_KEY}"}
 
 # Football-centric weights (tune as you like)
 WEIGHTS = {
-    # Performance composite (z-scored then scaled)
-    "offense": {
-        "ppa": 0.40,
-        "success_rate": 0.30,
-        "explosiveness": 0.20,
-        "pts_per_opp": 0.10
-    },
-    "defense": {
-        # lower is better for defense metrics, we invert before z-scoring
-        "ppa": 0.40,
-        "success_rate": 0.30,
-        "explosiveness": 0.20,
-        "pts_per_opp": 0.10
-    },
-    # Final blend
-    "final": {
-        "performance": 0.45,
-        "sos": 0.35,
-        "quality_wins": 0.20
-    },
-    "quality_win_scalar": 0.05,  # per-win scaling by opponent quality
-    "h2h_threshold": 1.0,        # if teams within threshold, nudge head-to-head winner
+    "offense": {"ppa": 0.40, "success_rate": 0.30, "explosiveness": 0.20, "pts_per_opp": 0.10},
+    "defense": {"ppa": 0.40, "success_rate": 0.30, "explosiveness": 0.20, "pts_per_opp": 0.10},  # inverted later
+    "final": {"performance": 0.45, "sos": 0.35, "quality_wins": 0.20},
+    "quality_win_scalar": 0.05,
+    "h2h_threshold": 1.0,
     "h2h_nudge": 0.15
 }
 
 # -------------------- HTTP HELPERS --------------------------
 
-def _get(endpoint: str, params: Optional[Dict[str, Any]] = None, tries: int = 3) -> Any:
-    """
-    Basic GET with retries/backoff.
-    """
+def _get(endpoint: str, params: Optional[Dict[str, Any]] = None, tries: int = 4) -> Any:
     url = f"{API_BASE}/{endpoint.lstrip('/')}"
     for attempt in range(tries):
-        resp = requests.get(url, headers=HEADERS, params=params, timeout=30)
+        resp = requests.get(url, headers=HEADERS, params=params, timeout=45)
         if resp.status_code == 200:
             return resp.json()
         if resp.status_code in (429, 500, 502, 503, 504):
-            # backoff
             time.sleep(1.5 * (attempt + 1))
             continue
         resp.raise_for_status()
-    # last attempt raise
     resp.raise_for_status()
 
 # -------------------- DATA FETCH ----------------------------
 
 def fetch_fbs_teams(year: int) -> List[Dict[str, Any]]:
-    # GET /teams/fbs?year=YYYY
     data = _get("teams/fbs", {"year": year})
-    # normalize to {team, conference}
-    out = []
-    for t in data:
-        out.append({
-            "team": t.get("school"),
-            "conference": t.get("conference")
-        })
-    return out
+    return [{"team": t.get("school"), "conference": t.get("conference")} for t in data]
 
-def fetch_games_all(year: int) -> List[Dict[str, Any]]:
-    # GET /games?year=YYYY -> return ALL games with final scores (no FBS filter yet)
-    data = _get("games", {"year": year})
+def _finished_games_only(raw: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     good = []
-    for g in data:
+    for g in raw:
         hp = g.get("home_points")
         ap = g.get("away_points")
         if hp is None or ap is None:
-            continue  # only played/finished games
+            continue
         good.append({
             "week": g.get("week"),
             "date": g.get("start_date"),
             "home_team": g.get("home_team"),
-            "home_conf": g.get("home_conference"),   # may be None
+            "home_conf": g.get("home_conference"),
             "home_points": hp,
             "away_team": g.get("away_team"),
-            "away_conf": g.get("away_conference"),   # may be None
+            "away_conf": g.get("away_conference"),
             "away_points": ap,
             "neutral_site": bool(g.get("neutral_site")),
         })
     return good
 
+def fetch_games_robust(year: int) -> List[Dict[str, Any]]:
+    """
+    CFBD /games sometimes needs certain params to return data reliably.
+    Try a sequence of parameter combos until we get finished games.
+    """
+    candidates = [
+        {"year": year},  # default
+        {"year": year, "seasonType": "regular"},
+        {"year": year, "seasonType": "both"},
+        {"year": year, "division": "fbs"},
+        {"year": year, "seasonType": "regular", "division": "fbs"},
+        {"year": year, "seasonType": "postseason"},
+    ]
+    for params in candidates:
+        try:
+            raw = _get("games", params)
+            finished = _finished_games_only(raw or [])
+            print(f"[games] params={params} -> total={len(raw or [])}, finished={len(finished)}")
+            if finished:
+                return finished
+        except requests.HTTPError as e:
+            print(f"[games] params={params} -> HTTP {e.response.status_code} ({e})")
+            continue
+        except Exception as e:
+            print(f"[games] params={params} -> error {e}")
+            continue
+    return []  # nothing worked
+
 def fetch_advanced_stats(year: int) -> Dict[str, Dict[str, float]]:
-    # GET /stats/season/advanced?year=YYYY
-    data = _get("stats/season/advanced", {"year": year})
+    data = _get("stats/season/advanced", {"year": year}) or []
     teams = {}
     for row in data:
         team = row.get("team")
@@ -147,8 +137,7 @@ def fetch_advanced_stats(year: int) -> Dict[str, Dict[str, float]]:
     return teams
 
 def fetch_records(year: int) -> Dict[str, Tuple[int, int]]:
-    # GET /records?year=YYYY
-    data = _get("records", {"year": year})
+    data = _get("records", {"year": year}) or []
     recs = {}
     for r in data:
         team = r.get("team")
@@ -161,11 +150,10 @@ def fetch_records(year: int) -> Dict[str, Tuple[int, int]]:
 # -------------------- METRIC HELPERS ------------------------
 
 def zscores(values: List[float]) -> List[float]:
-    # Standard z-score with ddof=0; guard edge cases
     if not values:
         return []
     mean = statistics.fmean(values)
-    var = statistics.fmean([(v - mean) ** 2 for v in values])  # population variance
+    var = statistics.fmean([(v - mean) ** 2 for v in values])
     std = math.sqrt(var)
     if std == 0:
         return [0.0 for _ in values]
@@ -238,24 +226,18 @@ def build_schedules(games: List[Dict[str, Any]]) -> Dict[str, set]:
     return opps
 
 def performance_composite(stats: Dict[str, Dict[str, float]]) -> Dict[str, float]:
-    """
-    Build a performance score from advanced stats:
-    - Offense: ppa, success_rate, explosiveness, pts_per_opp (weighted)
-    - Defense: same metrics but inverted (lower is better)
-    z-score each submetric across FBS, combine, then scale to 0..100
-    """
     teams = list(stats.keys())
     if not teams:
         return {}
 
     off_ppa = [stats[t]["off_ppa"] for t in teams]
-    off_sr = [stats[t]["off_success_rate"] for t in teams]
-    off_ex = [stats[t]["off_explosiveness"] for t in teams]
+    off_sr  = [stats[t]["off_success_rate"] for t in teams]
+    off_ex  = [stats[t]["off_explosiveness"] for t in teams]
     off_ppo = [stats[t]["off_pts_per_opp"] for t in teams]
 
     def_ppa = invert_list([stats[t]["def_ppa"] for t in teams])
-    def_sr = invert_list([stats[t]["def_success_rate"] for t in teams])
-    def_ex = invert_list([stats[t]["def_explosiveness"] for t in teams])
+    def_sr  = invert_list([stats[t]["def_success_rate"] for t in teams])
+    def_ex  = invert_list([stats[t]["def_explosiveness"] for t in teams])
     def_ppo = invert_list([stats[t]["def_pts_per_opp"] for t in teams])
 
     z = {
@@ -269,11 +251,9 @@ def performance_composite(stats: Dict[str, Dict[str, float]]) -> Dict[str, float
         "z_def_ppo": zscores(def_ppo),
     }
 
-    off_w = WEIGHTS["offense"]
-    def_w = WEIGHTS["defense"]
-
+    off_w = WEIGHTS["offense"]; def_w = WEIGHTS["defense"]
     perf_z: List[float] = []
-    for i, _ in enumerate(teams):
+    for i in range(len(teams)):
         off_score = (
             off_w["ppa"] * z["z_off_ppa"][i] +
             off_w["success_rate"] * z["z_off_sr"][i] +
@@ -292,9 +272,6 @@ def performance_composite(stats: Dict[str, Dict[str, float]]) -> Dict[str, float
     return {team: perf_scaled[i] for i, team in enumerate(teams)}
 
 def compute_rating_sos(perf: Dict[str, float], schedules: Dict[str, set]) -> Dict[str, float]:
-    """
-    Rating-based SOS: average of opponents' performance scores.
-    """
     sos = {}
     for team, opps in schedules.items():
         opp_scores = [perf.get(o) for o in opps if o in perf]
@@ -304,22 +281,16 @@ def compute_rating_sos(perf: Dict[str, float], schedules: Dict[str, set]) -> Dic
 def compute_quality_wins(games: List[Dict[str, Any]],
                          perf: Dict[str, float],
                          sos: Dict[str, float]) -> Dict[str, float]:
-    """
-    For each victory, bonus = scalar * average(opponent's performance, opponent's SOS).
-    """
     scalar = WEIGHTS["quality_win_scalar"]
     qw: Dict[str, float] = {}
     for g in games:
         home, away = g["home_team"], g["away_team"]
         hp, ap = g["home_points"], g["away_points"]
         winner = home if hp > ap else away
-        loser = away if hp > ap else home
+        loser  = away if hp > ap else home
         opp_perf = perf.get(loser)
-        opp_sos = sos.get(loser)
-        if opp_perf is None or opp_sos is None:
-            bonus = 0.0
-        else:
-            bonus = scalar * ((opp_perf + opp_sos) / 2.0)
+        opp_sos  = sos.get(loser)
+        bonus = 0.0 if (opp_perf is None or opp_sos is None) else scalar * ((opp_perf + opp_sos) / 2.0)
         qw[winner] = qw.get(winner, 0.0) + bonus
         qw.setdefault(loser, 0.0)
     return qw
@@ -333,9 +304,6 @@ def head_to_head_map(games: List[Dict[str, Any]]) -> Dict[str, set]:
     return beaten
 
 def apply_h2h_nudges(rows: List[Dict[str, Any]], beaten_map: Dict[str, set]) -> List[Dict[str, Any]]:
-    """
-    If winner and loser are within h2h_threshold in final_score, nudge winner by h2h_nudge.
-    """
     threshold = WEIGHTS["h2h_threshold"]
     nudge = WEIGHTS["h2h_nudge"]
     score_map = {r["team"]: r["final_score"] for r in rows}
@@ -355,67 +323,61 @@ def apply_h2h_nudges(rows: List[Dict[str, Any]], beaten_map: Dict[str, set]) -> 
 def main() -> None:
     print(f"Building rankings for {YEAR}")
 
-    # Fetch teams and games
-    fbs = fetch_fbs_teams(YEAR)                 # [{team, conference}]
+    fbs = fetch_fbs_teams(YEAR)
     fbs_names = {t["team"] for t in fbs if t.get("team")}
-    games_all = fetch_games_all(YEAR)           # all played games with final scores
 
-    # Filter to FBS vs FBS using the team list (ignore missing conference fields)
-    games = [
-        g for g in games_all
-        if (g["home_team"] in fbs_names) and (g["away_team"] in fbs_names)
-    ]
+    # Robust game fetch
+    games_all = fetch_games_robust(YEAR)
+    # Filter to FBS vs FBS by name membership
+    games = [g for g in games_all if g["home_team"] in fbs_names and g["away_team"] in fbs_names]
 
+    print(f"Found {len(games_all)} finished games total, {len(games)} FBS-vs-FBS after filter.")
     if not games:
-        print(f"Found {len(games_all)} finished games total, {len(games)} FBS-vs-FBS after filter.")
-        raise SystemExit("No FBS vs FBS games with final scores found for the season.")
+        # As a last resort: try previous week/year hint — but do not crash the site build.
+        # We'll write an empty but valid rankings.json to keep Pages happy.
+        print("No FBS-vs-FBS games found. Writing empty rankings.json so site still loads.")
+        os.makedirs(os.path.join("docs", "data"), exist_ok=True)
+        out_path = os.path.join("docs", "data", "rankings.json")
+        out = {"season": YEAR, "last_build_utc": datetime.datetime.utcnow().isoformat(), "top25": []}
+        with open(out_path, "w") as f:
+            json.dump(out, f, indent=2)
+        print(f"Wrote {out_path} (empty).")
+        return
 
-    # Advanced stats + records
-    stats = fetch_advanced_stats(YEAR)          # team -> metrics
-    records_map = fetch_records(YEAR)           # team -> (wins, losses)
+    stats = fetch_advanced_stats(YEAR)   # team -> metrics
+    records_map = fetch_records(YEAR)    # team -> (wins, losses)
+    rec = build_records(games)
 
-    # Build record table
-    rec = build_records(games)  # team -> {wins, losses, games, win_pct}
-
-    # Performance composite
-    perf = performance_composite(stats)  # team -> 0..100
-
-    # Schedules + SOS
+    perf = performance_composite(stats)
     schedules = build_schedules(games)
-    sos = compute_rating_sos(perf, schedules)  # team -> ~0..100
-
-    # Quality wins
+    sos = compute_rating_sos(perf, schedules)
     qw = compute_quality_wins(games, perf, sos)
 
-    # Assemble row per FBS team
     table: List[Dict[str, Any]] = []
     for row in fbs:
-        team = row["team"]
-        conf = row["conference"]
-
+        team = row["team"]; conf = row["conference"]
         wins, losses = records_map.get(team, (0, 0))
         games_played = rec.get(team, {}).get("games", wins + losses)
         win_pct = rec.get(team, {}).get("win_pct", 0.0)
 
-        # advanced metrics (0.0 default if missing)
         s = stats.get(team, {})
         off_ppa = float(s.get("off_ppa", 0.0))
-        off_sr = float(s.get("off_success_rate", 0.0))
-        off_ex = float(s.get("off_explosiveness", 0.0))
+        off_sr  = float(s.get("off_success_rate", 0.0))
+        off_ex  = float(s.get("off_explosiveness", 0.0))
         off_ppo = float(s.get("off_pts_per_opp", 0.0))
         def_ppa = float(s.get("def_ppa", 0.0))
-        def_sr = float(s.get("def_success_rate", 0.0))
-        def_ex = float(s.get("def_explosiveness", 0.0))
+        def_sr  = float(s.get("def_success_rate", 0.0))
+        def_ex  = float(s.get("def_explosiveness", 0.0))
         def_ppo = float(s.get("def_pts_per_opp", 0.0))
 
         perf_score = float(perf.get(team, 0.0))
-        sos_score = float(sos.get(team, 0.0))
-        qwins = float(qw.get(team, 0.0))
+        sos_score  = float(sos.get(team, 0.0))
+        qwins      = float(qw.get(team, 0.0))
 
         final_score = (
-            WEIGHTS["final"]["performance"] * perf_score
-            + WEIGHTS["final"]["sos"] * sos_score
-            + WEIGHTS["final"]["quality_wins"] * qwins
+            WEIGHTS["final"]["performance"] * perf_score +
+            WEIGHTS["final"]["sos"] * sos_score +
+            WEIGHTS["final"]["quality_wins"] * qwins
         )
 
         table.append({
@@ -440,7 +402,6 @@ def main() -> None:
             "slug": slugify_team(team),
         })
 
-    # Ranks (1=best) for components
     def rank_by_key(rows: List[Dict[str, Any]], key: str) -> Dict[str, int]:
         sorted_rows = sorted(rows, key=lambda r: r[key], reverse=True)
         rank_map = {}
@@ -457,19 +418,17 @@ def main() -> None:
         return rank_map
 
     perf_rank_map = rank_by_key(table, "performance")
-    sos_rank_map = rank_by_key(table, "sos")
+    sos_rank_map  = rank_by_key(table, "sos")
 
     for r in table:
         r["performance_rank"] = perf_rank_map.get(r["team"], None) or 999
         r["sos_rank"] = sos_rank_map.get(r["team"], None) or 999
         r["record"] = f"{r['wins']}-{r['losses']}"
 
-    # Sort by final_score and apply head-to-head nudges
     table.sort(key=lambda r: r["final_score"], reverse=True)
     beaten = head_to_head_map(games)
     table = apply_h2h_nudges(table, beaten)
 
-    # Assign overall rank and slice Top 25
     for idx, r in enumerate(table, start=1):
         r["rank"] = idx
     top25 = table[:25]
@@ -500,8 +459,7 @@ def main() -> None:
                 "def_explosiveness": t["def_explosiveness"],
                 "def_pts_per_opp": t["def_pts_per_opp"],
                 "slug": t["slug"],
-            }
-            for t in top25
+            } for t in top25
         ]
     }
 
