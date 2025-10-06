@@ -1,21 +1,16 @@
 // ---- helpers: colors ----
 function hashColorHSL(str){
-  // stable HSL from string; readable pastels
   let h=0; for(let i=0;i<str.length;i++) h = (h*31 + str.charCodeAt(i))>>>0;
-  const hue = h % 360;
-  const sat = 68;           // %
-  const light = 46;         // %
+  const hue = h % 360, sat = 68, light = 46;
   return `hsl(${hue} ${sat}% ${light}%)`;
 }
 function maybeLighter(hsl, pct=12){
-  // crude lighten: convert "hsl(H S% L%)" to bump L
   const m = hsl.match(/hsl\((\d+)\s+(\d+)%\s+(\d+)%\)/);
   if(!m) return hsl;
   const H=+m[1], S=+m[2], L=Math.min(95, +m[3]+pct);
   return `hsl(${H} ${S}% ${L}%)`;
 }
 
-// load optional color map
 async function loadTeamColors(){
   try{
     const res = await fetch('data/team_colors.json', {cache:'no-store'});
@@ -23,20 +18,18 @@ async function loadTeamColors(){
     const arr = await res.json();
     const map = {};
     for(const rec of arr){
-      map[rec.team] = {
-        primary: rec.primary || null,
-        secondary: rec.secondary || null
-      };
+      const p = rec.primary && rec.primary.startsWith("#") ? rec.primary : null;
+      const s = rec.secondary && rec.secondary.startsWith("#") ? rec.secondary : null;
+      map[rec.team] = { primary:p, secondary:s };
     }
     return map;
   }catch{ return {}; }
 }
-
 function teamPalette(team, colorsMap){
   const c = colorsMap[team];
   if(c && c.primary){
     const p = c.primary;
-    const s = c.secondary || maybeLighter(p, 18);
+    const s = c.secondary || maybeLighter(`hsl(0 0% 50%)`, 18);
     return { primary:p, secondary:s };
   }
   const p = hashColorHSL(team);
@@ -53,7 +46,6 @@ function bubble(label, val){
   el.append(lab, v);
   return el;
 }
-
 function card(team, palette){
   const el = document.createElement('div');
   el.className = 'card';
@@ -76,15 +68,12 @@ function card(team, palette){
   el.addEventListener('click', () => openModal(team, palette));
   return el;
 }
-
 function kv(key, val){
   const wrap = document.createElement('div'); wrap.className='kv';
   const k = document.createElement('div'); k.className='key'; k.textContent = key;
   const v = document.createElement('div'); v.className='val'; v.textContent = val;
-  wrap.append(k,v);
-  return wrap;
+  wrap.append(k,v); return wrap;
 }
-
 function openModal(team, palette){
   const modal = document.getElementById('modal');
   const content = document.getElementById('modal-content');
@@ -129,7 +118,6 @@ function openModal(team, palette){
     kv('Pts / Opp', team.def_pts_per_opp.toFixed(4)),
   );
 
-  // colorize modal ring via inline style vars
   const modalCard = document.querySelector('.modal-card');
   modalCard.style.outline = `2px solid ${palette.primary}`;
   modalCard.style.boxShadow = `0 12px 28px rgba(0,0,0,.5), 0 0 0 3px ${palette.secondary} inset`;
@@ -137,18 +125,26 @@ function openModal(team, palette){
   modal.classList.remove('hidden');
   modal.setAttribute('aria-hidden','false');
 }
-
-function closeModal(){
-  const modal = document.getElementById('modal');
-  modal.classList.add('hidden');
-  modal.setAttribute('aria-hidden','true');
-}
-
+function closeModal(){ const m=document.getElementById('modal'); m.classList.add('hidden'); m.setAttribute('aria-hidden','true'); }
 document.getElementById('close-modal').addEventListener('click', closeModal);
 document.querySelector('.modal-backdrop').addEventListener('click', closeModal);
 document.addEventListener('keydown', (e) => { if(e.key==='Escape') closeModal(); });
 
+function bindTabs(){
+  const tabs = document.querySelectorAll('.tab');
+  tabs.forEach(t=>{
+    t.addEventListener('click', ()=>{
+      tabs.forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      const which = t.dataset.tab;
+      document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+      document.getElementById(`panel-${which}`).classList.add('active');
+    });
+  });
+}
+
 async function main(){
+  bindTabs();
   const meta = document.getElementById('meta');
   const grid = document.getElementById('bubble-grid');
   try{
