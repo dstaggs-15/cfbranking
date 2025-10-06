@@ -244,8 +244,8 @@ def compute_sos_fbs_only(teams: Dict[str, TeamRow], fbs: Set[str]) -> None:
 
 # ====================== SCORING ======================
 
-# Base weights (sum=1.00). Much stronger Win%, stronger SoS.
-W_WIN = 0.52   # split into overall and FBS-only inside base_score()
+# Base weights (sum=1.00). Win% heavy; SoS strong; margin + advanced complete picture.
+W_WIN = 0.52
 W_SOS = 0.23
 W_MARGIN = 0.06
 W_PPA = 0.07
@@ -261,14 +261,14 @@ H2H_SAME_LOSSES_STRICT = True        # within same loss bucket, winner > loser
 LOSS_BUCKET_SORT = True              # teams with fewer losses always above
 WEAK_SOS_PENALTY = True              # subtract if sos < 0.50 (smooth)
 
-def base_score(win_pct_overall: float, win_pct_fbs: float, sos: float, avg_margin: float, z: dict) -> float:
-    # Win component: emphasize FBS wins more (60/40 split inside W_WIN)
-    win_component = 0.40 * win_pct_overall + 0.60 * win_pct_fbs
+def base_score(win_pct_overall: float, sos: float, avg_margin: float, z: dict) -> Tuple[float, float]:
+    # Win component is 100% overall record (includes FBS vs FCS)
+    win_component = win_pct_overall
 
-    # Weak schedule penalty: if sos < 0.50, subtract up to 0.05 at sos=0.00; 0 at sos>=0.50
+    # Weak schedule penalty: if sos < 0.50, subtract up to ~0.05; 0 at sos>=0.50
     sched_pen = 0.0
     if WEAK_SOS_PENALTY and sos < 0.50:
-        sched_pen = -0.10 * (0.50 - sos)  # linear; sos=0.40 => -0.01; sos=0.30 => -0.02; sos=0.10 => -0.04
+        sched_pen = -0.10 * (0.50 - sos)
 
     score = (
         W_WIN * win_component +
@@ -335,11 +335,9 @@ def score_pass(teams: Dict[str, TeamRow], zadv: Dict[str, dict], rank_map: Dict[
         win_pct_overall = d["wins"] / d["games"]
         avg_margin = (d["pf"] - d["pa"]) / max(1, d["games"])
         sos = d.get("sos", 0.0)
-        fbs_games = d.get("fbs_games", 0)
-        fbs_win_pct = (d.get("fbs_wins", 0) / fbs_games) if fbs_games else 0.0
         z = zadv.get(t, {})
 
-        base, sched_pen = base_score(win_pct_overall, fbs_win_pct, sos, avg_margin, z)
+        base, sched_pen = base_score(win_pct_overall, sos, avg_margin, z)
         second = {"quality_wins": {}, "bad_losses": {}, "q_bonus": 0.0, "badloss_pen": 0.0, "h2h_enforced": []}
         if rank_map is not None:
             adj, second = second_order(t, d, rank_map)
@@ -354,12 +352,11 @@ def score_pass(teams: Dict[str, TeamRow], zadv: Dict[str, dict], rank_map: Dict[
             "points_against": d["pa"],
             "sos": round(sos, 6),
             "avg_margin": round(avg_margin, 3),
-            "fbs_games": fbs_games,
+            "fbs_games": d.get("fbs_games", 0),
             "fbs_wins": d.get("fbs_wins", 0),
             "score": round(base, 6),
             "components": {
                 "win_pct_overall": round(win_pct_overall, 6),
-                "win_pct_fbs": round(fbs_win_pct, 6),
                 "sos": round(sos, 6),
                 "margin_scaled": round(avg_margin / 25.0, 6),
                 "schedule_penalty": round(sched_pen, 6),
@@ -374,7 +371,7 @@ def score_pass(teams: Dict[str, TeamRow], zadv: Dict[str, dict], rank_map: Dict[
                 "second_order": second
             }
         })
-    # Initial sort purely by score; we will apply bucket/H2H rules after
+    # Initial sort purely by score; bucket/H2H rules applied after
     rows.sort(key=lambda r: r["score"], reverse=True)
     for i, r in enumerate(rows, start=1):
         r["rank"] = i
@@ -384,7 +381,7 @@ def make_rank_map(rows: List[dict]) -> Dict[str, int]:
     return {r["team"]: r["rank"] for r in rows}
 
 def enforce_loss_buckets(rows: List[dict]) -> List[dict]:
-    """Sort by (losses asc, score desc)."""
+    """Sort by (losses asc, score desc). Guarantees fewer-loss teams rank above more-loss teams."""
     rows.sort(key=lambda r: (r["losses"], -r["score"]))
     for i, r in enumerate(rows, start=1):
         r["rank"] = i
@@ -392,7 +389,6 @@ def enforce_loss_buckets(rows: List[dict]) -> List[dict]:
 
 def enforce_h2h_same_losses(rows: List[dict], teams: Dict[str, TeamRow]) -> List[dict]:
     """Within the same loss bucket, ensure the head-to-head winner is above the loser (strict)."""
-    # Build quick lookup
     pos = {r["team"]: i for i, r in enumerate(rows)}
     changed = True
     while changed:
@@ -400,31 +396,24 @@ def enforce_h2h_same_losses(rows: List[dict], teams: Dict[str, TeamRow]) -> List
         for i in range(len(rows)):
             A = rows[i]["team"]
             losses_A = rows[i]["losses"]
-            # check opponents that A beat
             for res, opp in teams[A].get("results", []):
-                if res != "W":
+                if res != "W": 
                     continue
                 if opp not in pos:
                     continue
                 j = pos[opp]
-                if j <= i:
-                    continue  # already above or same
-                # same loss bucket?
+                if j <= i:  # already above
+                    continue
                 if rows[j]["losses"] == losses_A:
-                    # Move A above opp by swapping until A is just above opp
-                    while pos[opp] < pos[A]:
-                        pass  # shouldn't happen
-                    # simple bubble one step
+                    # swap A upward over opp
                     rows[i], rows[j] = rows[j], rows[i]
-                    # recompute positions
                     for k, r in enumerate(rows):
                         pos[r["team"]] = k
                         r["rank"] = k + 1
-                    # annotate
                     rows[pos[A]]["components"]["second_order"]["h2h_enforced"].append(f"{A} > {opp} (same-loss)")
                     changed = True
                     break
-            if changed:  # restart scan after any swap
+            if changed:
                 break
     return rows
 
@@ -438,7 +427,7 @@ def write_json(payload: dict):
 # ====================== MAIN ======================
 
 def main():
-    print(f"Building FBS rankings (loss-buckets + strict H2H + SoS penalty + FBS-only wins) for {YEAR}")
+    print(f"Building FBS rankings (overall-record win%, loss-buckets, strict H2H, SoS penalty) for {YEAR}")
     fbs = fetch_fbs_names(YEAR)
     cur_week = fetch_current_week(YEAR)
     games_all = fetch_regular_games_by_week(YEAR, cur_week)
@@ -479,11 +468,11 @@ def main():
         "notes": {
             "weeks_included": f"1..{cur_week}",
             "weights_base": {
-                "win_pct_total+fbs": W_WIN, "sos": W_SOS, "margin_scaled": W_MARGIN,
+                "win_pct_overall": W_WIN, "sos": W_SOS, "margin_scaled": W_MARGIN,
                 "delta_ppa": W_PPA, "delta_sr": W_SR, "delta_expl": W_EX
             },
-            "win_component": "0.40*overall_win% + 0.60*FBS_only_win%",
-            "schedule_penalty": "if SoS<0.50 then subtract 0.10*(0.50-SoS) (smooth up to -0.05)",
+            "win_component": "overall win% (FBS+FCS counted)",
+            "schedule_penalty": "if SoS<0.50 then subtract 0.10*(0.50-SoS)",
             "second_order": {
                 "quality_win_tiers": QW_TIER, "bad_loss_tiers": BL_TIER
             },
