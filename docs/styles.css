@@ -1,3 +1,14 @@
+.tabs{ display:flex; gap:8px; margin:10px 0 0 }
+.tab{
+  background:#12192b; color:#dfe7f7; border:1px solid rgba(255,255,255,.08);
+  border-radius:10px; padding:8px 12px; cursor:pointer;
+}
+.tab.active{ outline:2px solid #4da3ff }
+.panel{ display:none }
+.panel.active{ display:block }
+
+.small{ font-size:13px }
+
 :root{
   --bg:#0b0e14; --card:#111624; --text:#e9edf5; --muted:#9aa3b2;
   --ring:#4da3ff; --ring2:#86e1ff; --chip:#1a2236; --shadow:0 10px 24px rgba(0,0,0,.35);
