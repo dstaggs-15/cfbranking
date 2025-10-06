@@ -1,0 +1,25 @@
+# Performance composite (per side of ball) — choose football-first metrics
+offense:
+  ppa: 0.40               # predicted points added per play
+  success_rate: 0.30
+  explosiveness: 0.20
+  pts_per_opp: 0.10       # points per scoring opportunity
+
+defense:
+  ppa: 0.40               # lower is better (we invert)
+  success_rate: 0.30
+  explosiveness: 0.20
+  pts_per_opp: 0.10
+
+# Final score weighting (football résumé)
+final:
+  performance: 0.45       # how good you actually are
+  sos: 0.35               # who you played
+  quality_wins: 0.20      # who you beat, when you beat someone good
+
+# Quality win bonus scaling (keep small; we accumulate over season)
+quality_win_scalar: 0.05
+
+# Head-to-head: if teams are within this many points, nudge winner ahead
+h2h_threshold: 1.0
+h2h_nudge: 0.15
