@@ -1,18 +1,18 @@
 {
   "season": 2025,
-  "last_build_utc": "2025-10-06T14:34:37.627086",
+  "last_build_utc": "2025-10-06T14:48:26.029213",
   "notes": {
     "weeks_included": "1..16",
     "weights_base": {
-      "win_pct_total+fbs": 0.52,
+      "win_pct_overall": 0.52,
       "sos": 0.23,
       "margin_scaled": 0.06,
       "delta_ppa": 0.07,
       "delta_sr": 0.06,
       "delta_expl": 0.06
     },
-    "win_component": "0.40*overall_win% + 0.60*FBS_only_win%",
-    "schedule_penalty": "if SoS<0.50 then subtract 0.10*(0.50-SoS) (smooth up to -0.05)",
+    "win_component": "overall win% (FBS+FCS counted)",
+    "schedule_penalty": "if SoS<0.50 then subtract 0.10*(0.50-SoS)",
     "second_order": {
       "quality_win_tiers": {
         "top15": 0.07,
@@ -41,10 +41,9 @@
       "avg_margin": 32.4,
       "fbs_games": 4,
       "fbs_wins": 4,
-      "score": 1.374346,
+      "score": 1.354346,
       "components": {
         "win_pct_overall": 1.0,
-        "win_pct_fbs": 1.0,
         "sos": 0.625,
         "margin_scaled": 1.296,
         "schedule_penalty": 0.0,
@@ -59,14 +58,14 @@
         "second_order": {
           "quality_wins": {
             "top15": 0,
-            "r16_40": 2,
-            "r41_60": 0
+            "r16_40": 1,
+            "r41_60": 1
           },
           "bad_losses": {
             "r50_79": 0,
             "r80p": 0
           },
-          "q_bonus": 0.08,
+          "q_bonus": 0.06,
           "badloss_pen": -0.0,
           "h2h_enforced": []
         }
@@ -87,7 +86,6 @@
       "score": 1.25566,
       "components": {
         "win_pct_overall": 1.0,
-        "win_pct_fbs": 1.0,
         "sos": 0.708333,
         "margin_scaled": 1.528,
         "schedule_penalty": 0.0,
@@ -130,7 +128,6 @@
       "score": 1.230877,
       "components": {
         "win_pct_overall": 1.0,
-        "win_pct_fbs": 1.0,
         "sos": 0.45,
         "margin_scaled": 1.496,
         "schedule_penalty": -0.005,
@@ -173,7 +170,6 @@
       "score": 1.200727,
       "components": {
         "win_pct_overall": 1.0,
-        "win_pct_fbs": 1.0,
         "sos": 0.35,
         "margin_scaled": 1.376,
         "schedule_penalty": -0.015,
@@ -216,7 +212,6 @@
       "score": 1.131219,
       "components": {
         "win_pct_overall": 1.0,
-        "win_pct_fbs": 1.0,
         "sos": 0.416667,
         "margin_scaled": 1.048,
         "schedule_penalty": -0.008333,
@@ -259,7 +254,6 @@
       "score": 1.093646,
       "components": {
         "win_pct_overall": 1.0,
-        "win_pct_fbs": 1.0,
         "sos": 0.416667,
         "margin_scaled": 1.224,
         "schedule_penalty": -0.008333,
@@ -302,7 +296,6 @@
       "score": 1.081989,
       "components": {
         "win_pct_overall": 1.0,
-        "win_pct_fbs": 1.0,
         "sos": 0.55,
         "margin_scaled": 1.064,
         "schedule_penalty": 0.0,
@@ -345,7 +338,6 @@
       "score": 1.065748,
       "components": {
         "win_pct_overall": 1.0,
-        "win_pct_fbs": 1.0,
         "sos": 0.6,
         "margin_scaled": 0.856,
         "schedule_penalty": 0.0,
@@ -388,7 +380,6 @@
       "score": 0.944759,
       "components": {
         "win_pct_overall": 1.0,
-        "win_pct_fbs": 1.0,
         "sos": 0.52,
         "margin_scaled": 0.872,
         "schedule_penalty": 0.0,
@@ -431,7 +422,6 @@
       "score": 0.897437,
       "components": {
         "win_pct_overall": 1.0,
-        "win_pct_fbs": 1.0,
         "sos": 0.416667,
         "margin_scaled": 0.992,
         "schedule_penalty": -0.008333,
@@ -474,7 +464,6 @@
       "score": 0.896901,
       "components": {
         "win_pct_overall": 1.0,
-        "win_pct_fbs": 1.0,
         "sos": 0.573333,
         "margin_scaled": 0.552,
         "schedule_penalty": 0.0,
@@ -517,7 +506,6 @@
       "score": 0.893824,
       "components": {
         "win_pct_overall": 1.0,
-        "win_pct_fbs": 1.0,
         "sos": 0.358333,
         "margin_scaled": 0.712,
         "schedule_penalty": -0.014167,
@@ -560,7 +548,6 @@
       "score": 0.876395,
       "components": {
         "win_pct_overall": 1.0,
-        "win_pct_fbs": 1.0,
         "sos": 0.386667,
         "margin_scaled": 0.973333,
         "schedule_penalty": -0.011333,
@@ -603,7 +590,6 @@
       "score": 0.778302,
       "components": {
         "win_pct_overall": 1.0,
-        "win_pct_fbs": 1.0,
         "sos": 0.483333,
         "margin_scaled": 0.632,
         "schedule_penalty": -0.001667,
@@ -646,7 +632,6 @@
       "score": 0.569083,
       "components": {
         "win_pct_overall": 1.0,
-        "win_pct_fbs": 1.0,
         "sos": 0.25,
         "margin_scaled": 0.384,
         "schedule_penalty": -0.025,
@@ -689,7 +674,6 @@
       "score": 1.026941,
       "components": {
         "win_pct_overall": 0.8,
-        "win_pct_fbs": 0.8,
         "sos": 0.526667,
         "margin_scaled": 1.016,
         "schedule_penalty": 0.0,
@@ -729,10 +713,9 @@
       "avg_margin": 21.6,
       "fbs_games": 4,
       "fbs_wins": 3,
-      "score": 1.000771,
+      "score": 1.016371,
       "components": {
         "win_pct_overall": 0.8,
-        "win_pct_fbs": 0.75,
         "sos": 0.483333,
         "margin_scaled": 0.864,
         "schedule_penalty": -0.001667,
@@ -772,10 +755,9 @@
       "avg_margin": 23.833,
       "fbs_games": 5,
       "fbs_wins": 4,
-      "score": 0.949908,
+      "score": 0.960308,
       "components": {
         "win_pct_overall": 0.833333,
-        "win_pct_fbs": 0.8,
         "sos": 0.506667,
         "margin_scaled": 0.953333,
         "schedule_penalty": 0.0,
@@ -815,10 +797,9 @@
       "avg_margin": 22.0,
       "fbs_games": 4,
       "fbs_wins": 3,
-      "score": 0.910209,
+      "score": 0.925809,
       "components": {
         "win_pct_overall": 0.8,
-        "win_pct_fbs": 0.75,
         "sos": 0.591667,
         "margin_scaled": 0.88,
         "schedule_penalty": 0.0,
@@ -858,10 +839,9 @@
       "avg_margin": 17.6,
       "fbs_games": 4,
       "fbs_wins": 3,
-      "score": 0.745854,
+      "score": 0.761454,
       "components": {
         "win_pct_overall": 0.8,
-        "win_pct_fbs": 0.75,
         "sos": 0.508333,
         "margin_scaled": 0.704,
         "schedule_penalty": 0.0,
@@ -891,51 +871,6 @@
       "rank": 20
     },
     {
-      "team": "Iowa State",
-      "wins": 5,
-      "losses": 1,
-      "games": 6,
-      "points_for": 188,
-      "points_against": 109,
-      "sos": 0.573333,
-      "avg_margin": 13.167,
-      "fbs_games": 5,
-      "fbs_wins": 4,
-      "score": 0.738871,
-      "components": {
-        "win_pct_overall": 0.833333,
-        "win_pct_fbs": 0.8,
-        "sos": 0.573333,
-        "margin_scaled": 0.526667,
-        "schedule_penalty": 0.0,
-        "z": {
-          "off_ppa": 0.4012,
-          "def_ppa": -0.4253,
-          "off_sr": 0.1416,
-          "def_sr": -0.1193,
-          "off_expl": 0.0031,
-          "def_expl": -0.6462
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 1,
-            "r41_60": 0
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.04,
-          "badloss_pen": -0.0,
-          "h2h_enforced": [
-            "Iowa State > Arizona (same-loss)"
-          ]
-        }
-      },
-      "rank": 21
-    },
-    {
       "team": "Georgia",
       "wins": 4,
       "losses": 1,
@@ -946,10 +881,9 @@
       "avg_margin": 16.2,
       "fbs_games": 4,
       "fbs_wins": 3,
-      "score": 0.707326,
+      "score": 0.722926,
       "components": {
         "win_pct_overall": 0.8,
-        "win_pct_fbs": 0.75,
         "sos": 0.6,
         "margin_scaled": 0.648,
         "schedule_penalty": 0.0,
@@ -978,6 +912,50 @@
           ]
         }
       },
+      "rank": 21
+    },
+    {
+      "team": "Iowa State",
+      "wins": 5,
+      "losses": 1,
+      "games": 6,
+      "points_for": 188,
+      "points_against": 109,
+      "sos": 0.573333,
+      "avg_margin": 13.167,
+      "fbs_games": 5,
+      "fbs_wins": 4,
+      "score": 0.749271,
+      "components": {
+        "win_pct_overall": 0.833333,
+        "sos": 0.573333,
+        "margin_scaled": 0.526667,
+        "schedule_penalty": 0.0,
+        "z": {
+          "off_ppa": 0.4012,
+          "def_ppa": -0.4253,
+          "off_sr": 0.1416,
+          "def_sr": -0.1193,
+          "off_expl": 0.0031,
+          "def_expl": -0.6462
+        },
+        "second_order": {
+          "quality_wins": {
+            "top15": 0,
+            "r16_40": 1,
+            "r41_60": 0
+          },
+          "bad_losses": {
+            "r50_79": 0,
+            "r80p": 0
+          },
+          "q_bonus": 0.04,
+          "badloss_pen": -0.0,
+          "h2h_enforced": [
+            "Iowa State > Arizona (same-loss)"
+          ]
+        }
+      },
       "rank": 22
     },
     {
@@ -991,10 +969,9 @@
       "avg_margin": 18.4,
       "fbs_games": 4,
       "fbs_wins": 3,
-      "score": 0.929452,
+      "score": 0.945052,
       "components": {
         "win_pct_overall": 0.8,
-        "win_pct_fbs": 0.75,
         "sos": 0.675,
         "margin_scaled": 0.736,
         "schedule_penalty": 0.0,
@@ -1037,10 +1014,9 @@
       "avg_margin": 14.2,
       "fbs_games": 4,
       "fbs_wins": 3,
-      "score": 0.648248,
+      "score": 0.663848,
       "components": {
         "win_pct_overall": 0.8,
-        "win_pct_fbs": 0.75,
         "sos": 0.4,
         "margin_scaled": 0.568,
         "schedule_penalty": -0.01,
@@ -1080,10 +1056,9 @@
       "avg_margin": 16.6,
       "fbs_games": 4,
       "fbs_wins": 3,
-      "score": 0.633947,
+      "score": 0.649547,
       "components": {
         "win_pct_overall": 0.8,
-        "win_pct_fbs": 0.75,
         "sos": 0.45,
         "margin_scaled": 0.664,
         "schedule_penalty": -0.005,
