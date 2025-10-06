@@ -1,31 +1,66 @@
 #!/usr/bin/env python3
 """
-Deterministic CFB Top 25 (FBS-only ranking set)
-- Records count ALL games involving an FBS team (FBS vs FCS included).
-- Résumé (SoS, quality wins, bad losses, head-to-head) counts ONLY FBS vs FBS.
-- Primary order: LOSS BUCKETS (fewest losses first), then:
-    1) Strict head-to-head inside same-loss bucket
-    2) Composite score (Win%, SoS, Qual Wins, Bad Losses, Avg Margin, tiny adv spice)
-    3) FBS wins, then alphabetical
-Outputs per-team advanced raw fields for the frontend to compute z-scores.
+BCS-style deterministic CFB Top 25 (FBS résumé)
+Ordering:
+  (A) Loss buckets (fewest total losses first; records include FCS opponents)
+  (B) Head-to-head inside the same loss bucket (strict swap)
+  (C) Composite score (BCS-like components):
+        • Win% (FBS+FCS record, normalized)
+        • SOS1: Opponent strength (avg FBS-opponent win%)
+        • SOS2: Opponent’s opponent strength (avg of opponents’ SOS1)
+        • Quality wins (vs ~Top40 provisional) / Bad losses (vs ~80+)
+        • Average scoring margin (capped influence)
+        • Location adjustment (road/neutral/home)
+        • Tiny efficiency seasoning (off_ppa-def_ppa, off_sr-def_sr)
+        • OPTIONAL: Human polls (AP/Coaches) small weight (env POLLS_WEIGHT)
+
+Notes:
+  - Résumé math (SOS, H2H, etc.) uses only FBS vs FBS.
+  - Conference championship bonus applied when such games appear on the schedule.
+  - Outputs rich JSON for the frontend, including a 'why' breakdown per team.
 """
 
-import os, json, datetime, requests
+import os, json, datetime, requests, math, re
 from collections import defaultdict
 
+# --------- Config (via environment) ----------
 CFBD_API_KEY = os.getenv("CFBD_API_KEY")
 if not CFBD_API_KEY:
     raise RuntimeError("CFBD_API_KEY is not set")
 
-def _safe_year():
+def _safe_int(x, fallback):
     try:
-        return int(os.getenv("YEAR") or datetime.datetime.now().year)
+        return int(x)
     except Exception:
-        return datetime.datetime.now().year
+        return fallback
 
-YEAR = _safe_year()
+YEAR = _safe_int(os.getenv("YEAR"), datetime.datetime.now().year)
+# weight for combined human polls (AP + Coaches). Set 0 to disable.
+POLLS_WEIGHT = float(os.getenv("POLLS_WEIGHT", "0.12"))
+
+# Location adjustments per FBS game (added to composite directly as small nudges)
+ROAD_WIN_BONUS   = 0.007
+ROAD_LOSS_PEN    = -0.010
+HOME_WIN_BONUS   = 0.000
+HOME_LOSS_PEN    = -0.012
+NEUTRAL_WIN_BONUS= 0.003
+NEUTRAL_LOSS_PEN = -0.006
+
+# Composite weights (sum of big pieces not required to equal 1.0; we clamp later)
+W_WINPCT   = 0.44
+W_SOS1     = 0.22
+W_SOS2     = 0.10
+W_MARGIN   = 0.08      # margin normalized by 28 pts per game
+W_QUAL     = 0.015     # per quality win
+W_BAD      = -0.02     # per bad loss
+W_ADV_PPA  = 0.02      # off_ppa - def_ppa (clamped [-1,1]) * W_ADV_PPA
+W_ADV_SR   = 0.01      # off_sr  - def_sr  (clamped [-1,1]) * W_ADV_SR
+W_WEAK_SOS = -0.06     # penalty for SOS1 below ~0.52
+W_CONF_CH  = 0.01      # small bonus if a team wins a conf championship game (in-season zero)
+
+# --------------------------------------------
+
 HEADERS = {"Authorization": f"Bearer {CFBD_API_KEY}"}
-
 DATA_DIR = "docs/data"
 os.makedirs(DATA_DIR, exist_ok=True)
 OUT_FILE = os.path.join(DATA_DIR, "rankings.json")
@@ -50,11 +85,11 @@ def get_regular_games(year: int):
     rows = fetch("games", {"year": year, "seasonType": "regular"})
     out = []
     for g in rows:
-        hp = g.get("homePoints")
-        ap = g.get("awayPoints")
+        hp = g.get("homePoints"); ap = g.get("awayPoints")
         if hp is None or ap is None:
             continue
         out.append({
+            "id": g.get("id"),
             "week": g.get("week"),
             "home": g.get("homeTeam"),
             "away": g.get("awayTeam"),
@@ -62,6 +97,35 @@ def get_regular_games(year: int):
             "away_conf": g.get("awayConference"),
             "hp": safe_float(hp),
             "ap": safe_float(ap),
+            "neutral": bool(g.get("neutralSite")),
+            "venue": g.get("venue"),
+            "notes": g.get("notes") or ""
+        })
+    return out
+
+def get_postseason_games(year: int):
+    # For conf championships and bowls/playoff; many seasons list conf title games here.
+    try:
+        rows = fetch("games", {"year": year, "seasonType": "postseason"})
+    except Exception:
+        rows = []
+    out = []
+    for g in rows:
+        hp = g.get("homePoints"); ap = g.get("awayPoints")
+        if hp is None or ap is None:
+            continue
+        out.append({
+            "id": g.get("id"),
+            "week": g.get("week"),
+            "home": g.get("homeTeam"),
+            "away": g.get("awayTeam"),
+            "home_conf": g.get("homeConference"),
+            "away_conf": g.get("awayConference"),
+            "hp": safe_float(hp),
+            "ap": safe_float(ap),
+            "neutral": bool(g.get("neutralSite")),
+            "venue": g.get("venue"),
+            "notes": g.get("notes") or ""
         })
     return out
 
@@ -86,149 +150,317 @@ def get_season_advanced(year: int) -> dict:
         }
     return out
 
-def rollup(games: list, fbs_set: set):
+def latest_polls(year: int):
+    """
+    Pull latest AP and Coaches rankings available this season via /rankings.
+    Returns dict: { team: {ap: rank|None, coaches: rank|None} }
+    """
+    out = defaultdict(lambda: {"ap": None, "coaches": None})
+    try:
+        rows = fetch("rankings", {"year": year})
+    except Exception:
+        return out
+
+    # rows is list of weeks; take the last non-empty week for AP and Coaches
+    ap_seen = set(); coaches_seen = set()
+    for wk in rows:
+        polls = wk.get("polls", [])
+        for p in polls:
+            poll = (p.get("poll") or "").lower()
+            ranks = p.get("ranks") or []
+            if poll == "ap top 25":
+                # overwrite each time; the last iteration will be latest week
+                ap_seen = set()
+                for r in ranks:
+                    team = r.get("school"); rank = r.get("rank")
+                    if team and rank:
+                        out[team]["ap"] = int(rank)
+                        ap_seen.add(team)
+            elif poll == "coaches poll":
+                coaches_seen = set()
+                for r in ranks:
+                    team = r.get("school"); rank = r.get("rank")
+                    if team and rank:
+                        out[team]["coaches"] = int(rank)
+                        coaches_seen.add(team)
+    return out
+
+def rollup_regular(games: list, fbs_set: set):
+    """
+    Build per-team tallies:
+      - wins/losses (overall, includes FCS opponents when FBS team involved)
+      - FBS-only wins/losses, H2H map, opponent sets, location adj
+    """
     teams = {}
+    # initialize on first sight
+    def ensure(t):
+        if t not in teams:
+            teams[t] = {
+                "wins": 0, "losses": 0, "pf": 0.0, "pa": 0.0,
+                "fbs_wins": 0, "fbs_losses": 0,
+                "fbs_opps": set(),
+                "results_fbs": [],   # list of ("W"/"L", opp)
+                "results_all": [],   # includes FCS opp labels
+                "loc_adj": 0.0       # sum of small bonuses/penalties
+            }
+
     for g in games:
         h, a, hp, ap = g["home"], g["away"], g["hp"], g["ap"]
         if not h or not a:
             continue
+        h_fbs = h in fbs_set
+        a_fbs = a in fbs_set
+        if not (h_fbs or a_fbs):
+            continue
 
-        for t in (h, a):
-            if t in fbs_set and t not in teams:
-                teams[t] = {
-                    "wins": 0, "losses": 0, "pf": 0.0, "pa": 0.0,
-                    "fbs_wins": 0, "fbs_losses": 0,
-                    "fbs_opps": set(),
-                    "results_fbs": [],
-                    "results_all": []
-                }
+        if h_fbs: ensure(h)
+        if a_fbs: ensure(a)
 
-        if h in teams:
-            teams[h]["pf"] += hp
-            teams[h]["pa"] += ap
-            if hp > ap:
-                teams[h]["wins"] += 1
-                teams[h]["results_all"].append(("W", a))
-            elif ap > hp:
-                teams[h]["losses"] += 1
-                teams[h]["results_all"].append(("L", a))
+        # Record & points for any FBS team involved (so overall record matches TV sites)
+        if h_fbs:
+            teams[h]["pf"] += hp; teams[h]["pa"] += ap
+            if hp > ap: teams[h]["wins"] += 1; teams[h]["results_all"].append(("W", a))
+            elif ap > hp: teams[h]["losses"] += 1; teams[h]["results_all"].append(("L", a))
+        if a_fbs:
+            teams[a]["pf"] += ap; teams[a]["pa"] += hp
+            if ap > hp: teams[a]["wins"] += 1; teams[a]["results_all"].append(("W", h))
+            elif hp > ap: teams[a]["losses"] += 1; teams[a]["results_all"].append(("L", h))
 
-        if a in teams:
-            teams[a]["pf"] += ap
-            teams[a]["pa"] += hp
-            if ap > hp:
-                teams[a]["wins"] += 1
-                teams[a]["results_all"].append(("W", h))
-            elif hp > ap:
-                teams[a]["losses"] += 1
-                teams[a]["results_all"].append(("L", h))
-
-        if h in teams and a in teams:
+        # FBS vs FBS résumé, H2H, location nudges
+        if h_fbs and a_fbs:
             teams[h]["fbs_opps"].add(a)
             teams[a]["fbs_opps"].add(h)
             if hp > ap:
-                teams[h]["fbs_wins"] += 1
-                teams[a]["fbs_losses"] += 1
-                teams[h]["results_fbs"].append(("W", a))
-                teams[a]["results_fbs"].append(("L", h))
+                teams[h]["fbs_wins"] += 1; teams[a]["fbs_losses"] += 1
+                teams[h]["results_fbs"].append(("W", a)); teams[a]["results_fbs"].append(("L", h))
+                # location
+                if g["neutral"]:
+                    teams[h]["loc_adj"] += NEUTRAL_WIN_BONUS
+                    teams[a]["loc_adj"] += NEUTRAL_LOSS_PEN
+                else:
+                    teams[h]["loc_adj"] += HOME_WIN_BONUS
+                    teams[a]["loc_adj"] += ROAD_LOSS_PEN
             elif ap > hp:
-                teams[a]["fbs_wins"] += 1
-                teams[h]["fbs_losses"] += 1
-                teams[a]["results_fbs"].append(("W", h))
-                teams[h]["results_fbs"].append(("L", a))
+                teams[a]["fbs_wins"] += 1; teams[h]["fbs_losses"] += 1
+                teams[a]["results_fbs"].append(("W", h)); teams[h]["results_fbs"].append(("L", a))
+                if g["neutral"]:
+                    teams[a]["loc_adj"] += NEUTRAL_WIN_BONUS
+                    teams[h]["loc_adj"] += NEUTRAL_LOSS_PEN
+                else:
+                    teams[a]["loc_adj"] += ROAD_WIN_BONUS
+                    teams[h]["loc_adj"] += HOME_LOSS_PEN
     return teams
 
+def detect_conf_champs(postseason_games, fbs_set):
+    """
+    Return set of (winner teams) that appear to have won a 'Championship' game.
+    CFBD postseason 'notes' often contain 'Championship'.
+    """
+    champs = set()
+    for g in postseason_games:
+        h, a, hp, ap = g["home"], g["away"], g["hp"], g["ap"]
+        if not (h in fbs_set and a in fbs_set):
+            continue
+        txt = (g.get("notes") or "") + " " + (g.get("venue") or "")
+        if re.search(r"Championship", txt, re.IGNORECASE):
+            if hp > ap: champs.add(h)
+            elif ap > hp: champs.add(a)
+    return champs
+
 def compute_sos(teams: dict):
+    """ SOS1: avg FBS-opponent win%; also compute opponents' sos for SOS2 later. """
     fbs_wpct = {}
     for t, d in teams.items():
         g = d["fbs_wins"] + d["fbs_losses"]
         fbs_wpct[t] = (d["fbs_wins"] / g) if g > 0 else 0.5
+
     for t, d in teams.items():
         opps = [o for o in d["fbs_opps"] if o in teams]
-        d["sos"] = (sum(fbs_wpct[o] for o in opps) / len(opps)) if opps else 0.5
+        d["sos1"] = (sum(fbs_wpct[o] for o in opps) / len(opps)) if opps else 0.5
 
-def composite_score(d: dict, qual_w: int, bad_l: int, adv: dict):
-    games = d["wins"] + d["losses"]
-    win_pct = (d["wins"] / games) if games > 0 else 0.0
-    sos = d.get("sos", 0.5)
-    avg_margin = ((d["pf"] - d["pa"]) / games) if games > 0 else 0.0
+    # SOS2 = average of opponents' SOS1
+    for t, d in teams.items():
+        opps = [o for o in d["fbs_opps"] if o in teams]
+        d["sos2"] = (sum(teams[o]["sos1"] for o in opps) / len(opps)) if opps else 0.5
 
-    # Tiny advanced “spice”—doesn’t dominate
-    delta_ppa = (adv.get("off_ppa", 0.0) - adv.get("def_ppa", 0.0))
-    delta_sr  = (adv.get("off_sr", 0.0)  - adv.get("def_sr", 0.0))
-    adv_term = 0.02 * max(-1.0, min(1.0, delta_ppa)) + 0.01 * max(-1.0, min(1.0, delta_sr))
-
-    qw_term = 0.015 * qual_w
-    bl_term = -0.02 * bad_l
-    weak_sos_pen = -0.06 * max(0.0, 0.52 - sos)
-
-    score = (
-        0.50 * win_pct +
-        0.22 * sos +
-        0.10 * (avg_margin / 28.0) +
-        qw_term + bl_term +
-        adv_term +
-        weak_sos_pen
-    )
-    return max(0.0, min(1.0, score))
-
-def build_rankings(year: int):
-    print(f"Building deterministic FBS rankings for {year}")
-    fbs_set = get_fbs_set(year)
-    games = get_regular_games(year)
-    if not fbs_set or not games:
-        return {"season": year, "last_build_utc": datetime.datetime.utcnow().isoformat(), "top25": []}
-
-    teams = rollup(games, fbs_set)
-    if not teams:
-        return {"season": year, "last_build_utc": datetime.datetime.utcnow().isoformat(), "top25": []}
-
-    compute_sos(teams)
-    adv_all = get_season_advanced(year)
-
-    # Seed order to classify quality/bad via provisional ranks
+def provisional_seed(teams):
+    """Seed list just to classify quality wins and bad losses."""
     seed = []
     for t, d in teams.items():
         games_cnt = d["wins"] + d["losses"]
         win_pct = (d["wins"] / games_cnt) if games_cnt > 0 else 0.0
-        seed.append((t, 0.7*win_pct + 0.3*d.get("sos", 0.5)))
+        seed.append((t, 0.7 * win_pct + 0.3 * d.get("sos1", 0.5)))
     seed.sort(key=lambda x: x[1], reverse=True)
-    seed_rank = {t: i+1 for i, (t, _) in enumerate(seed)}
+    return {t: i + 1 for i, (t, _) in enumerate(seed)}
 
+def build_qw_bl(teams, seed_rank):
     qual = defaultdict(int)
     bad  = defaultdict(int)
     for t, d in teams.items():
         for res, opp in d["results_fbs"]:
             r = seed_rank.get(opp, 999)
             if res == "W":
-                if r <= 40:
-                    qual[t] += 1
+                if r <= 40: qual[t] += 1
             elif res == "L":
-                if r >= 80:
-                    bad[t] += 1
+                if r >= 80: bad[t] += 1
+    return qual, bad
 
+def latest_week_number(games):
+    if not games: return 0
+    return max(safe_float(g["week"], 0) for g in games)
+
+def composite_for_team(t, d, qual, bad, adv, poll_comp, conf_champ_winner):
+    games = d["wins"] + d["losses"]
+    win_pct = (d["wins"] / games) if games > 0 else 0.0
+    sos1 = d.get("sos1", 0.5)
+    sos2 = d.get("sos2", 0.5)
+    avg_margin = ((d["pf"] - d["pa"]) / games) if games > 0 else 0.0
+    avg_margin_norm = avg_margin / 28.0  # cap effect
+
+    # Advanced tiny seasoning
+    adv_term = 0.0
+    if adv:
+        delta_ppa = max(-1.0, min(1.0, adv.get("off_ppa", 0.0) - adv.get("def_ppa", 0.0)))
+        delta_sr  = max(-1.0, min(1.0,  adv.get("off_sr", 0.0)  - adv.get("def_sr", 0.0)))
+        adv_term = W_ADV_PPA * delta_ppa + W_ADV_SR * delta_sr
+
+    # Weak schedule penalty near/below average
+    weak_pen = W_WEAK_SOS * max(0.0, 0.52 - sos1)
+
+    # Conf championship
+    conf_bonus = W_CONF_CH if conf_champ_winner else 0.0
+
+    score = (
+        W_WINPCT * win_pct +
+        W_SOS1   * sos1 +
+        W_SOS2   * sos2 +
+        W_MARGIN * avg_margin_norm +
+        W_QUAL   * qual +
+        W_BAD    * bad +
+        d.get("loc_adj", 0.0) +  # already in 'score space' as small nudges
+        adv_term +
+        weak_pen +
+        conf_bonus +
+        (POLLS_WEIGHT * poll_comp if poll_comp is not None else 0.0)
+    )
+    return max(0.0, min(1.0, score))
+
+def polls_component_for(team, polls_map):
+    if POLLS_WEIGHT <= 0: 
+        return None, None, None
+    entry = polls_map.get(team, {})
+    ap = entry.get("ap")
+    coaches = entry.get("coaches")
+    def nrm(rank):
+        if rank is None: return None
+        if rank > 25: return 0.0
+        return (26 - rank) / 25.0  # 1.0 for #1, ~0.04 for #25
+    ap_n = nrm(ap)
+    co_n = nrm(coaches)
+    if ap_n is None and co_n is None:
+        return None, ap, coaches
+    if ap_n is None: poll_comp = co_n
+    elif co_n is None: poll_comp = ap_n
+    else: poll_comp = 0.5 * (ap_n + co_n)
+    return poll_comp, ap, coaches
+
+def human_readable_why(t, d, comp_parts):
+    """Produce a short, plain-English explanation per team."""
+    reasons = []
+    # Losses, H2H handled by ordering; here we narrate components.
+    win_pct = comp_parts["win_pct"]
+    sos1    = comp_parts["sos1"]
+    sos2    = comp_parts["sos2"]
+    margin  = comp_parts["avg_margin"]
+    qw      = comp_parts["qual_wins"]
+    bl      = comp_parts["bad_losses"]
+    loc_adj = comp_parts["loc_adj"]
+    poll_ap = comp_parts.get("poll_ap")
+    poll_co = comp_parts.get("poll_coaches")
+    conf_ch = comp_parts.get("conf_champ", False)
+
+    reasons.append(f"Strong record at {win_pct:.1%} winning percentage.")
+    reasons.append(f"Schedule strength is {sos1:.3f} (opponents) and {sos2:.3f} (opponents’ opponents).")
+    reasons.append(f"Average scoring margin is {margin:.1f} points per game.")
+    if qw > 0: reasons.append(f"{qw} quality win(s) versus roughly Top-40 teams.")
+    if bl > 0: reasons.append(f"{bl} bad loss(es) against teams outside the Top-80.")
+    if abs(loc_adj) >= 0.004:
+        reasons.append("Road/neutral results provided a noticeable adjustment." if loc_adj > 0 else "Home/road outcomes slightly penalized the résumé.")
+    if conf_ch:
+        reasons.append("Conference championship win adds a small bonus.")
+    if POLLS_WEIGHT > 0 and (poll_ap or poll_co):
+        reasons.append("Small human-poll nudge from AP/Coaches (does not override résumé).")
+    return reasons
+
+def build_rankings(year: int):
+    print(f"Building BCS-like FBS rankings for {year}")
+    fbs_set = get_fbs_set(year)
+    reg = get_regular_games(year)
+    post = get_postseason_games(year)
+    if not fbs_set or not reg:
+        return {"season": year, "last_build_utc": datetime.datetime.utcnow().isoformat(), "top25": []}
+
+    teams = rollup_regular(reg, fbs_set)
+    if not teams:
+        return {"season": year, "last_build_utc": datetime.datetime.utcnow().isoformat(), "top25": []}
+
+    compute_sos(teams)
+    seed_rank = provisional_seed(teams)
+    qual_map, bad_map = build_qw_bl(teams, seed_rank)
+    adv_all = get_season_advanced(year)
+    champs = detect_conf_champs(post, fbs_set) if post else set()
+    polls_map = latest_polls(year) if POLLS_WEIGHT > 0 else defaultdict(lambda: {"ap": None, "coaches": None})
+
+    # First pass: compute composite & collect parts
     rows = []
     for t, d in teams.items():
-        s = composite_score(d, qual[t], bad[t], adv_all.get(t, {}))
+        poll_comp, ap, co = polls_component_for(t, polls_map)
+        score = composite_for_team(t, d,
+                                   qual=qual_map[t], bad=bad_map[t],
+                                   adv=adv_all.get(t, {}),
+                                   poll_comp=poll_comp,
+                                   conf_champ_winner=(t in champs))
+        games = d["wins"] + d["losses"]
+        avg_margin = ((d["pf"] - d["pa"]) / games) if games > 0 else 0.0
+        parts = {
+            "win_pct": (d["wins"] / games) if games > 0 else 0.0,
+            "sos1": d.get("sos1", 0.5),
+            "sos2": d.get("sos2", 0.5),
+            "avg_margin": avg_margin,
+            "qual_wins": qual_map[t],
+            "bad_losses": bad_map[t],
+            "loc_adj": d.get("loc_adj", 0.0),
+            "poll_ap": ap,
+            "poll_coaches": co,
+            "conf_champ": (t in champs)
+        }
         rows.append({
             "team": t,
             "wins": d["wins"],
             "losses": d["losses"],
-            "games": d["wins"] + d["losses"],
+            "games": games,
             "points_for": int(d["pf"]),
             "points_against": int(d["pa"]),
-            "sos": round(d.get("sos", 0.5), 6),
-            "avg_margin": round(((d["pf"] - d["pa"]) / max(1, d["wins"] + d["losses"])), 3),
+            "sos": round(d.get("sos1", 0.5), 6),
+            "sos2": round(d.get("sos2", 0.5), 6),
+            "avg_margin": round(avg_margin, 3),
             "fbs_wins": d["fbs_wins"],
             "fbs_losses": d["fbs_losses"],
-            "qual_wins": qual[t],
-            "bad_losses": bad[t],
-            "score": round(s, 6),
-            # expose raw adv for frontend z-scores
+            "qual_wins": qual_map[t],
+            "bad_losses": bad_map[t],
+            "location_adj": round(d.get("loc_adj", 0.0), 6),
+            "conf_champ": (t in champs),
+            "poll_ap": ap,
+            "poll_coaches": co,
+            "score": round(score, 6),
+            # expose raw adv for UI z-scores:
             "off_ppa": adv_all.get(t, {}).get("off_ppa", 0.0),
             "def_ppa": adv_all.get(t, {}).get("def_ppa", 0.0),
             "off_sr":  adv_all.get(t, {}).get("off_sr", 0.0),
             "def_sr":  adv_all.get(t, {}).get("def_sr", 0.0),
+            # human-friendly reasons
+            "why": human_readable_why(t, d, parts),
+            "components": parts
         })
 
     # Loss buckets then composite within bucket
@@ -249,7 +481,6 @@ def build_rankings(year: int):
                 if rows[j]["losses"] != lossA:
                     continue
                 B = rows[j]["team"]
-                # if A lost to B, swap B ahead of A
                 if results_map.get(A, {}).get(B) == "L":
                     rows[i], rows[j] = rows[j], rows[i]
                     changed = True
@@ -269,23 +500,33 @@ def build_rankings(year: int):
         "points_for": r["points_for"],
         "points_against": r["points_against"],
         "sos": round(r["sos"], 3),
+        "sos2": round(r["sos2"], 3),
         "avg_margin": round(r["avg_margin"], 1),
         "qual_wins": r["qual_wins"],
         "bad_losses": r["bad_losses"],
-        # advanced raw for UI z-scores:
+        "location_adj": r["location_adj"],
+        "conf_champ": r["conf_champ"],
+        "poll_ap": r["poll_ap"],
+        "poll_coaches": r["poll_coaches"],
         "off_ppa": r["off_ppa"],
         "def_ppa": r["def_ppa"],
         "off_sr": r["off_sr"],
-        "def_sr": r["def_sr"]
+        "def_sr": r["def_sr"],
+        "why": r["why"]
     } for r in rows[:25]]
 
     return {
         "season": year,
         "last_build_utc": datetime.datetime.utcnow().isoformat(),
         "notes": {
-            "method": "Loss buckets > in-bucket head-to-head > composite (Win%, SoS, Quality Wins, Bad Losses, Margin). Records include FCS games; résumé counts only FBS vs FBS.",
-            "weeks_included": "regular season to date",
-            "weights": {"win_pct": 0.50, "sos": 0.22, "margin": 0.10, "qual_win_each": 0.015, "bad_loss_each": -0.02}
+            "ordering": "Loss buckets > in-bucket head-to-head > composite (Win%, SOS1, SOS2, margin, quality/bad, location, tiny efficiency, optional small poll).",
+            "weights": {
+                "win_pct": W_WINPCT, "sos1": W_SOS1, "sos2": W_SOS2, "margin": W_MARGIN,
+                "qual_each": W_QUAL, "bad_each": W_BAD,
+                "adv_ppa": W_ADV_PPA, "adv_sr": W_ADV_SR,
+                "weak_sos_pen": W_WEAK_SOS, "conf_champ": W_CONF_CH,
+                "polls_weight": POLLS_WEIGHT
+            }
         },
         "top25": top25
     }
