@@ -5,153 +5,257 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>CFB Top 25 — In-Season Metrics</title>
 <style>
-:root{--bg:#0b111a;--panel:#121826;--panel2:#0f1420;--text:#eaf0f7;--muted:#9fb0c4;--brand:#5eead4;--accent:#a78bfa;--r:16px;--shadow:0 10px 28px rgba(0,0,0,.45)}
-*{box-sizing:border-box}html,body{height:100%}
-body{margin:0;background:
-  radial-gradient(1200px 600px at 20% -10%, #1a2440 0%, transparent 60%),
-  radial-gradient(1000px 500px at 120% 10%, #1b2746 0%, transparent 60%),
-  var(--bg);
-  color:var(--text);font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-.container{max-width:1100px;margin:0 auto;padding:1.2rem}
-.site-header{border-bottom:1px solid rgba(255,255,255,.06);background:linear-gradient(180deg, rgba(255,255,255,.04), transparent)}
-.site-header h1{margin:.25rem 0 0;font-weight:800;letter-spacing:.2px}
+:root{
+  --bg:#0b111a;--panel:#111827;--panel2:#0d1321;--text:#eaf0f7;--muted:#9fb0c4;
+  --fallback:#5eead4;--accent:#a78bfa;--radius:16px;--shadow:0 10px 28px rgba(0,0,0,.45)
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:
+  radial-gradient(1100px 560px at 15% -10%, #1a2240 0%, transparent 60%),
+  radial-gradient(1000px 520px at 120% 10%, #1b2746 0%, transparent 60%),
+  var(--bg); color:var(--text);
+  font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif
+}
+.container{max-width:900px;margin:0 auto;padding:1.2rem}
+.header{
+  border-bottom:1px solid rgba(255,255,255,.06);
+  background:linear-gradient(180deg,rgba(255,255,255,.04),transparent)
+}
+h1{margin:.25rem 0 0;font-weight:800}
 .sub{margin:.25rem 0 1rem;color:var(--muted)}
 .updated{margin:.25rem 0 1rem;color:var(--accent)}
-.btn{appearance:none;border:0;cursor:pointer;padding:.55rem .9rem;border-radius:10px;font-weight:600;background:var(--brand);color:#041016;box-shadow:var(--shadow)}
-.btn.secondary{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.15)}
-.btn.secondary:hover{border-color:rgba(255,255,255,.35)}
-.about{margin-top:.8rem;background:var(--panel);border-radius:var(--r);padding:1rem 1.2rem;border:1px solid rgba(255,255,255,.09)}
-.about pre{background:var(--panel2);padding:.6rem;border-radius:10px;overflow:auto}
+.btn{
+  appearance:none;border:1px solid rgba(255,255,255,.18);background:transparent;color:var(--text);
+  border-radius:10px;padding:.55rem .9rem;font-weight:600;cursor:pointer
+}
+.btn:hover{border-color:rgba(255,255,255,.35)}
+.panel{
+  margin-top:.9rem;background:var(--panel);border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--radius);padding:1rem 1.1rem
+}
 .hidden{display:none}
-.grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));margin:1.5rem 0 2.5rem}
-.card{background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:var(--r);padding:1rem 1.1rem;box-shadow:var(--shadow);transition:transform .15s,border-color .15s,background .15s;cursor:pointer}
-.card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.18)}
-.row1{display:flex;align-items:center;gap:.75rem;margin-bottom:.25rem}
-.rank-badge{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:var(--brand);color:#041016}
-.team{font-size:1.06rem;font-weight:700;letter-spacing:.2px}
+
+/* list layout */
+.list{margin:1.2rem 0 3rem}
+.row{
+  display:flex;gap:1rem;align-items:center;
+  background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.08);
+  border-left:8px solid var(--fallback);
+  border-radius:12px;padding:.8rem 1rem;margin:.6rem 0; box-shadow:var(--shadow);
+  transition:transform .12s ease,border-color .12s ease,background .12s ease
+}
+.row:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.18)}
+.rank-badge{
+  min-width:42px;height:42px;border-radius:999px;display:grid;place-items:center;
+  font-weight:800;background:var(--fallback);color:#041016
+}
+.teamline{display:flex;gap:.65rem;align-items:center;flex-wrap:wrap}
+.teamname{font-weight:750;letter-spacing:.2px}
 .score{color:var(--muted);font-size:.92rem}
-.details{margin-top:.6rem;padding-top:.6rem;border-top:1px dashed rgba(255,255,255,.12);color:#cfd7e3;font-size:.94rem}
-.kv{display:grid;grid-template-columns:1fr auto;gap:.25rem .5rem}
-.kv div:nth-child(odd){color:var(--muted)}
-.kv div:nth-child(even){font-weight:600}
-.empty{text-align:center;background:var(--panel);border:1px dashed rgba(255,255,255,.12);color:var(--muted);padding:1.25rem;border-radius:var(--r)}
-.error{background:#371a1a;border:1px solid #6b1d1d;color:#ffd8d8;padding:.8rem 1rem;border-radius:10px;margin:1rem 0}
-.site-footer{border-top:1px solid rgba(255,255,255,.06);background:linear-gradient(0deg, rgba(255,255,255,.04), transparent);color:var(--muted)}
+.chev{margin-left:auto;opacity:.7}
+.details{
+  margin:.5rem 0 .2rem 3.5rem;padding:.8rem 1rem .9rem 1rem;border-left:2px dashed rgba(255,255,255,.14);
+  border-radius:0 10px 10px 0;background:rgba(255,255,255,.03)
+}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.25rem .8rem}
+.grid2 div:nth-child(odd){color:var(--muted)}
+.grid2 div:nth-child(even){font-weight:600}
+.kpill{
+  display:inline-block;margin:.2rem .35rem .2rem 0;padding:.25rem .5rem;border-radius:999px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);font-size:.85rem
+}
+.small{color:var(--muted);font-size:.92rem;margin-top:.4rem}
+
+/* error/empty */
+.error{background:#3d1c1c;border:1px solid #6b1d1d;color:#ffd8d8;padding:.8rem;border-radius:10px;margin:1rem 0}
+.empty{text-align:center;background:var(--panel);border:1px dashed rgba(255,255,255,.12);color:var(--muted);padding:1rem;border-radius:12px}
+.footer{border-top:1px solid rgba(255,255,255,.06);background:linear-gradient(0deg,rgba(255,255,255,.04),transparent);color:var(--muted)}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
-<header class="site-header">
+<header class="header">
   <div class="container">
     <h1>CFB Top 25 — In-Season Metrics</h1>
-    <p class="sub">Win% • Strength of Schedule • Scoring Margin</p>
+    <p class="sub">Win% • Strength of Schedule • Avg Margin • Advanced Efficiency</p>
     <p id="updated" class="updated"></p>
-    <button id="about-toggle" class="btn secondary">📘 About these rankings</button>
-    <div id="about" class="about hidden">
-      <p>This model is 100% data-driven — no polls and no preseason bias. Each team’s weekly score is:</p>
-      <pre><code>Score = 0.55 × Win%  +  0.30 × Strength of Schedule  +  0.15 × (Average Margin ÷ 25)</code></pre>
+
+    <button id="about-btn" class="btn">📘 How these rankings work</button>
+    <div id="about" class="panel hidden">
+      <p>This system is 100% data-driven — no polls, no preseason bias. We combine <b>results</b> and <b>per-play efficiency</b> for every FBS team from Week 1 through the current week.</p>
+      <p><b>What counts in your score:</b></p>
       <ul>
-        <li><b>Win%</b>: games won / games played</li>
-        <li><b>Average Margin</b>: (points for − points against) per game</li>
-        <li><b>Strength of Schedule</b>: mean opponent Win% among teams already played</li>
+        <li><b>Win %</b> — games won ÷ games played (all opponents). <span class="kpill">weight: 0.40</span></li>
+        <li><b>SOS</b> — average win% of <i>FBS opponents</i> you’ve played. <span class="kpill">0.22</span></li>
+        <li><b>Avg scoring margin</b> — points for − points against, per game (scaled). <span class="kpill">0.12</span></li>
+        <li><b>Advanced efficiency (Layer 1)</b> from CFBD season advanced stats:
+          <ul>
+            <li><b>PPA</b> (off − def) <span class="kpill">0.10</span></li>
+            <li><b>Success Rate</b> (off − def) <span class="kpill">0.08</span></li>
+            <li><b>Explosiveness</b> (off − def) <span class="kpill">0.08</span></li>
+          </ul>
+          Each advanced metric is standardized (z-score) across FBS for comparability.
+        </li>
+        <li><b>Second-order tweaks</b>:
+          <span class="kpill">+0.04 × quality wins</span>
+          <span class="kpill">−0.03 × bad losses</span>.
+          Quality = beating current Top-40; bad = losing to rank ≥80. (Small, capped.)
+        </li>
       </ul>
-      <p>Data updates automatically from the CFBD API whenever the workflow runs.</p>
+      <p class="small">Records include all games FBS teams play (FCS wins aren’t ignored), but <i>SOS uses FBS-only opponents</i>, so cupcakes don’t inflate schedule strength.</p>
     </div>
   </div>
 </header>
 
 <main class="container">
   <div id="error" class="error hidden"></div>
-  <div id="rankings" class="grid"></div>
-  <div id="empty" class="empty hidden">No rankings available yet. Check back after games complete.</div>
+  <ol id="list" class="list"></ol>
+  <div id="empty" class="empty hidden">No rankings yet. Check back after games complete.</div>
 </main>
 
-<footer class="site-footer">
-  <div class="container">
-    Built with CFBD data • No preseason bias • Auto-updated
-  </div>
+<footer class="footer">
+  <div class="container">Built with CFBD data • No preseason bias • Auto-updated</div>
 </footer>
 
 <script>
-function renderCard(entry, index){
-  const sosPct = (entry.sos ?? 0) * 100;
-  const avgMargin = (entry.avg_margin ?? entry.avgMargin ?? 0);
+/* ---------- Team colors (primary hex) ---------- */
+/* Not every team is here; unknowns fall back to --fallback */
+const TEAM_COLORS = {
+  "Air Force":"#003087","Akron":"#041E42","Alabama":"#9e1b32","Appalachian State":"#ffcc00",
+  "Arizona":"#CC0033","Arizona State":"#8c1d40","Arkansas":"#9D2235","Arkansas State":"#cc092f",
+  "Army":"#8d8a76","Auburn":"#0C2340","Ball State":"#ba0c2f","Baylor":"#154733","Boise State":"#0033A0",
+  "Boston College":"#8A100B","Bowling Green":"#4f2c1d","BYU":"#002E5D","Buffalo":"#005bbb","Cal":"#003262",
+  "Central Michigan":"#6a0032","Charlotte":"#014e42","Cincinnati":"#E00122","Clemson":"#F56600","Coastal Carolina":"#006F71",
+  "Colorado":"#CFB87C","Colorado State":"#1E4D2B","Duke":"#001A57","East Carolina":"#592A8A","Eastern Michigan":"#006A4E",
+  "Florida":"#0021A5","Florida Atlantic":"#003366","Florida International":"#081E3F","Florida State":"#782F40",
+  "Fresno State":"#C41230","Georgia":"#BA0C2F","Georgia Southern":"#041E42","Georgia State":"#0039A6","Georgia Tech":"#B3A369",
+  "Hawai'i":"#024731","Houston":"#C8102E","Illinois":"#13294B","Indiana":"#990000","Iowa":"#FFCD00","Iowa State":"#C8102E",
+  "James Madison":"#450084","Kansas":"#0051BA","Kansas State":"#512888","Kent State":"#002664","Kentucky":"#0033A0",
+  "Liberty":"#00205B","Louisiana":"#CE181E","Louisiana Tech":"#003087","Louisville":"#AD0000","LSU":"#461D7C",
+  "Marshall":"#00B140","Maryland":"#E03A3E","Memphis":"#0C1E6A","Miami":"#f47321","Miami (OH)":"#B61E2E",
+  "Michigan":"#00274C","Michigan State":"#18453B","Middle Tennessee":"#0066CC","Minnesota":"#7A0019","Mississippi State":"#660000",
+  "Missouri":"#F1B82D","Navy":"#00205B","NC State":"#CC0000","Nebraska":"#E41C38","Nevada":"#003366","New Mexico":"#ba0c2f",
+  "New Mexico State":"#861F41","North Carolina":"#7BAFD4","North Texas":"#00853E","Northern Illinois":"#BA0C2F",
+  "Northwestern":"#4E2A84","Notre Dame":"#0C2340","Ohio":"#00694E","Ohio State":"#BB0000","Oklahoma":"#841617",
+  "Oklahoma State":"#FF7300","Old Dominion":"#1B3A6D","Ole Miss":"#CE1126","Oregon":"#154733","Oregon State":"#DC4405",
+  "Penn State":"#041E42","Pittsburgh":"#003594","Purdue":"#CEB888","Rice":"#002469","Rutgers":"#CC0033",
+  "San Diego State":"#A6192E","San José State":"#0055A2","SMU":"#CE1126","South Alabama":"#00205B","South Carolina":"#73000A",
+  "South Florida":"#006747","Southern Miss":"#FDB827","Stanford":"#8C1515","Syracuse":"#F76900","TCU":"#4D1979",
+  "Temple":"#9D2235","Tennessee":"#FF8200","Texas":"#BF5700","Texas A&M":"#500000","Texas State":"#501214",
+  "Texas Tech":"#CC0000","Toledo":"#003E7E","Troy":"#7C2529","Tulane":"#005837","Tulsa":"#002D72","UAB":"#006341",
+  "UCF":"#B39B5B","UCLA":"#2774AE","UConn":"#0C2340","UMass":"#981E32","UNLV":"#BA0C2F","USC":"#990000",
+  "UTEP":"#041E42","UTSA":"#0C2340","Utah":"#CC0000","Utah State":"#003366","Vanderbilt":"#000000","Virginia":"#232D4B",
+  "Virginia Tech":"#630031","Wake Forest":"#9E7E38","Washington":"#4B2E83","Washington State":"#981E32","West Virginia":"#002855",
+  "Western Kentucky":"#AD0000","Western Michigan":"#7a5230","Wisconsin":"#C4012F","Wyoming":"#492F24","Navy Midshipmen":"#00205B"
+};
+/* ----------------------------------- */
+
+const $ = sel => document.querySelector(sel);
+const listEl = $("#list");
+const errorEl = $("#error");
+const emptyEl = $("#empty");
+const updatedEl = $("#updated");
+$("#about-btn").addEventListener("click", () => $("#about").classList.toggle("hidden"));
+
+function teamColor(name){ return TEAM_COLORS[name] || "var(--fallback)"; }
+
+function fmtPct(x){ return (x*100).toFixed(1) + "%"; }
+
+function rowTemplate(t, i){
+  const color = teamColor(t.team);
+  const sosPct = t.sos ?? 0;
+  const details = t.components || {};
+  const z = (details.z || {});
+  const so = (details.second_order || {});
   return `
-    <article class="card" tabindex="0" aria-expanded="false">
-      <div class="row1">
-        <div class="rank-badge">#${index + 1}</div>
-        <div>
-          <div class="team">${entry.team}</div>
-          <div class="score">Score: ${Number(entry.score).toFixed(3)}</div>
-        </div>
+  <li>
+    <div class="row" style="--fallback:${color}">
+      <div class="rank-badge">#${t.rank}</div>
+      <div class="teamline">
+        <span class="teamname">${t.team}</span>
+        <span class="score">Score: ${Number(t.score).toFixed(3)}</span>
       </div>
-      <section class="details hidden">
-        <div class="kv">
-          <div>Record</div><div>${entry.wins}-${entry.losses}</div>
-          <div>Avg margin</div><div>${avgMargin}</div>
-          <div>Strength of schedule</div><div>${sosPct.toFixed(1)}%</div>
-          <div>Points for</div><div>${entry.points_for}</div>
-          <div>Points against</div><div>${entry.points_against}</div>
-        </div>
-      </section>
-    </article>`;
+      <span class="chev">▾</span>
+    </div>
+    <div class="details hidden">
+      <div class="grid2">
+        <div>Record</div><div>${t.wins}-${t.losses}</div>
+        <div>Avg margin</div><div>${t.avg_margin}</div>
+        <div>Strength of schedule</div><div>${fmtPct(sosPct)}</div>
+        <div>Points for</div><div>${t.points_for}</div>
+        <div>Points against</div><div>${t.points_against}</div>
+      </div>
+
+      <p class="small" style="margin-top:.8rem"><b>Advanced (z-scores across FBS):</b></p>
+      <div class="grid2">
+        <div>Off PPA</div><div>${(z.off_ppa ?? 0).toFixed(2)}</div>
+        <div>Def PPA</div><div>${(z.def_ppa ?? 0).toFixed(2)}</div>
+        <div>Off Success Rate</div><div>${(z.off_sr ?? 0).toFixed(2)}</div>
+        <div>Def Success Rate</div><div>${(z.def_sr ?? 0).toFixed(2)}</div>
+        <div>Off Explosiveness</div><div>${(z.off_expl ?? 0).toFixed(2)}</div>
+        <div>Def Explosiveness</div><div>${(z.def_expl ?? 0).toFixed(2)}</div>
+      </div>
+
+      <p class="small" style="margin-top:.8rem"><b>Second-order factors:</b>
+        <span class="kpill">Quality wins: ${so.quality_wins ?? 0}</span>
+        <span class="kpill">Bad losses: ${so.bad_losses ?? 0}</span>
+        <span class="kpill">Adj: ${( (so.q_bonus||0) + (so.badloss_pen||0) + (so.h2h_bonus||0) ).toFixed(3)}</span>
+      </p>
+
+      <p class="small">Weighted recipe used this week:
+        <span class="kpill">Win% 0.40</span>
+        <span class="kpill">SoS 0.22</span>
+        <span class="kpill">Margin 0.12</span>
+        <span class="kpill">PPA Δ 0.10</span>
+        <span class="kpill">SR Δ 0.08</span>
+        <span class="kpill">Expl Δ 0.08</span>
+        <span class="kpill">2nd-order ± (small)</span>
+      </p>
+    </div>
+  </li>`;
 }
 
-async function main(){
-  const updated = document.getElementById("updated");
-  const grid = document.getElementById("rankings");
-  const empty = document.getElementById("empty");
-  const errorBox = document.getElementById("error");
-  const aboutBtn = document.getElementById("about-toggle");
-  const about = document.getElementById("about");
-
-  aboutBtn.addEventListener("click", () => about.classList.toggle("hidden"));
-
-  // 1) Try project-relative path (Pages default)
-  const tryUrls = [
-    "data/rankings.json?cb=" + Date.now(),
-    "./data/rankings.json?cb=" + Date.now(),
-    "/cfbranking/data/rankings.json?cb=" + Date.now()   // safety net for custom domain
+async function loadJSON(){
+  const tries = [
+    "data/rankings.json?cb="+Date.now(),
+    "./data/rankings.json?cb="+Date.now(),
+    "/cfbranking/data/rankings.json?cb="+Date.now()
   ];
-
-  let data = null, lastErr = null;
-  for (const url of tryUrls){
+  for(const url of tries){
     try{
       const res = await fetch(url, {cache:"no-store"});
-      if(!res.ok) throw new Error(`HTTP ${res.status}`);
-      data = await res.json();
-      console.log("Loaded JSON from", url);
-      break;
-    }catch(err){
-      lastErr = err;
-      console.warn("Failed", url, err);
-    }
+      if(res.ok) return await res.json();
+    }catch(e){}
   }
-  if(!data){
-    errorBox.classList.remove("hidden");
-    errorBox.textContent = "Could not load rankings.json. Looked in: " + tryUrls.join("  |  ") + (lastErr ? `  • Last error: ${lastErr.message}` : "");
-    return;
-  }
-
-  updated.textContent = `Last updated ${new Date(data.last_build_utc).toLocaleString()} • Season ${data.season}`;
-
-  const list = Array.isArray(data.top25) ? data.top25 : [];
-  if (list.length === 0){
-    empty.classList.remove("hidden");
-    return;
-  }
-
-  grid.innerHTML = list.map(renderCard).join("");
-  grid.querySelectorAll(".card").forEach(card => {
-    const details = card.querySelector(".details");
-    const toggle = () => {
-      details.classList.toggle("hidden");
-      card.setAttribute("aria-expanded", details.classList.contains("hidden") ? "false" : "true");
-    };
-    card.addEventListener("click", toggle);
-    card.addEventListener("keypress", e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); toggle(); }});
-  });
+  throw new Error("Could not fetch rankings.json from any known path.");
 }
-main();
+
+(async function(){
+  try{
+    const data = await loadJSON();
+    updatedEl.innerHTML = `Last updated <b>${new Date(data.last_build_utc).toLocaleString()}</b> • Season ${data.season}`;
+    const arr = Array.isArray(data.top25) ? data.top25 : [];
+    if(!arr.length){ emptyEl.classList.remove("hidden"); return; }
+    listEl.innerHTML = arr.map(rowTemplate).join("");
+
+    // toggle details
+    listEl.querySelectorAll(".row").forEach((row, idx) => {
+      const details = row.nextElementSibling;
+      const toggle = () => details.classList.toggle("hidden");
+      row.addEventListener("click", toggle);
+      row.addEventListener("keypress", e => {
+        if(e.key === "Enter" || e.key === " "){ e.preventDefault(); toggle(); }
+      });
+    });
+  }catch(err){
+    errorEl.classList.remove("hidden");
+    errorEl.textContent = err.message;
+  }
+})();
 </script>
 </body>
 </html>
