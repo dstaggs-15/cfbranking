@@ -1,5 +1,281 @@
 {
   "season": 2025,
-  "last_build_utc": "2025-10-06T02:23:36.272404",
-  "top25": []
+  "last_build_utc": "2025-10-06T02:43:27.380341",
+  "top25": [
+    {
+      "team": "North Central College",
+      "score": 0.9745,
+      "games": 4,
+      "wins": 4,
+      "losses": 0,
+      "points_for": 186,
+      "points_against": 28,
+      "sos": 0.625,
+      "avg_margin": 39.5
+    },
+    {
+      "team": "Indiana",
+      "score": 0.9732,
+      "games": 5,
+      "wins": 5,
+      "losses": 0,
+      "points_for": 239,
+      "points_against": 48,
+      "sos": 0.646667,
+      "avg_margin": 38.2
+    },
+    {
+      "team": "Wisconsin-Platteville",
+      "score": 0.93325,
+      "games": 4,
+      "wins": 4,
+      "losses": 0,
+      "points_for": 177,
+      "points_against": 39,
+      "sos": 0.5875,
+      "avg_margin": 34.5
+    },
+    {
+      "team": "Ohio State",
+      "score": 0.9304,
+      "games": 5,
+      "wins": 5,
+      "losses": 0,
+      "points_for": 187,
+      "points_against": 25,
+      "sos": 0.62,
+      "avg_margin": 32.4
+    },
+    {
+      "team": "Salisbury",
+      "score": 0.925,
+      "games": 4,
+      "wins": 4,
+      "losses": 0,
+      "points_for": 214,
+      "points_against": 44,
+      "sos": 0.4,
+      "avg_margin": 42.5
+    },
+    {
+      "team": "Ferris State",
+      "score": 0.9206,
+      "games": 5,
+      "wins": 5,
+      "losses": 0,
+      "points_for": 280,
+      "points_against": 57,
+      "sos": 0.343333,
+      "avg_margin": 44.6
+    },
+    {
+      "team": "Harding University",
+      "score": 0.9196,
+      "games": 5,
+      "wins": 5,
+      "losses": 0,
+      "points_for": 224,
+      "points_against": 26,
+      "sos": 0.44,
+      "avg_margin": 39.6
+    },
+    {
+      "team": "Texas Tech",
+      "score": 0.9064,
+      "games": 5,
+      "wins": 5,
+      "losses": 0,
+      "points_for": 243,
+      "points_against": 56,
+      "sos": 0.44,
+      "avg_margin": 37.4
+    },
+    {
+      "team": "Trinity University TX",
+      "score": 0.90475,
+      "games": 4,
+      "wins": 4,
+      "losses": 0,
+      "points_for": 185,
+      "points_against": 36,
+      "sos": 0.4375,
+      "avg_margin": 37.25
+    },
+    {
+      "team": "Johns Hopkins University",
+      "score": 0.9025,
+      "games": 4,
+      "wins": 4,
+      "losses": 0,
+      "points_for": 164,
+      "points_against": 59,
+      "sos": 0.65,
+      "avg_margin": 26.25
+    },
+    {
+      "team": "Kutztown University",
+      "score": 0.8926,
+      "games": 5,
+      "wins": 5,
+      "losses": 0,
+      "points_for": 229,
+      "points_against": 31,
+      "sos": 0.35,
+      "avg_margin": 39.6
+    },
+    {
+      "team": "Harvard",
+      "score": 0.892,
+      "games": 3,
+      "wins": 3,
+      "losses": 0,
+      "points_for": 159,
+      "points_against": 38,
+      "sos": 0.333333,
+      "avg_margin": 40.333
+    },
+    {
+      "team": "Oregon",
+      "score": 0.8804,
+      "games": 5,
+      "wins": 5,
+      "losses": 0,
+      "points_for": 233,
+      "points_against": 61,
+      "sos": 0.413333,
+      "avg_margin": 34.4
+    },
+    {
+      "team": "Oklahoma",
+      "score": 0.8776,
+      "games": 5,
+      "wins": 5,
+      "losses": 0,
+      "points_for": 169,
+      "points_against": 36,
+      "sos": 0.56,
+      "avg_margin": 26.6
+    },
+    {
+      "team": "North Dakota State",
+      "score": 0.8752,
+      "games": 5,
+      "wins": 5,
+      "losses": 0,
+      "points_for": 222,
+      "points_against": 46,
+      "sos": 0.38,
+      "avg_margin": 35.2
+    },
+    {
+      "team": "Tennessee Tech",
+      "score": 0.8728,
+      "games": 5,
+      "wins": 5,
+      "losses": 0,
+      "points_for": 283,
+      "points_against": 59,
+      "sos": 0.18,
+      "avg_margin": 44.8
+    },
+    {
+      "team": "Valley City State",
+      "score": 0.862,
+      "games": 1,
+      "wins": 1,
+      "losses": 0,
+      "points_for": 27,
+      "points_against": 0,
+      "sos": 0.5,
+      "avg_margin": 27.0
+    },
+    {
+      "team": "University of Mount Union",
+      "score": 0.85675,
+      "games": 4,
+      "wins": 4,
+      "losses": 0,
+      "points_for": 190,
+      "points_against": 73,
+      "sos": 0.4375,
+      "avg_margin": 29.25
+    },
+    {
+      "team": "Missouri",
+      "score": 0.8536,
+      "games": 5,
+      "wins": 5,
+      "losses": 0,
+      "points_for": 226,
+      "points_against": 73,
+      "sos": 0.4,
+      "avg_margin": 30.6
+    },
+    {
+      "team": "North Texas",
+      "score": 0.8468,
+      "games": 5,
+      "wins": 5,
+      "losses": 0,
+      "points_for": 224,
+      "points_against": 100,
+      "sos": 0.493333,
+      "avg_margin": 24.8
+    },
+    {
+      "team": "Minnesota Duluth",
+      "score": 0.844333,
+      "games": 6,
+      "wins": 6,
+      "losses": 0,
+      "points_for": 238,
+      "points_against": 87,
+      "sos": 0.477778,
+      "avg_margin": 25.167
+    },
+    {
+      "team": "Presbyterian",
+      "score": 0.8436,
+      "games": 5,
+      "wins": 5,
+      "losses": 0,
+      "points_for": 213,
+      "points_against": 65,
+      "sos": 0.386667,
+      "avg_margin": 29.6
+    },
+    {
+      "team": "Miami",
+      "score": 0.8424,
+      "games": 5,
+      "wins": 5,
+      "losses": 0,
+      "points_for": 175,
+      "points_against": 68,
+      "sos": 0.546667,
+      "avg_margin": 21.4
+    },
+    {
+      "team": "Ole Miss",
+      "score": 0.8368,
+      "games": 5,
+      "wins": 5,
+      "losses": 0,
+      "points_for": 203,
+      "points_against": 94,
+      "sos": 0.52,
+      "avg_margin": 21.8
+    },
+    {
+      "team": "Bethel (MN)",
+      "score": 0.832,
+      "games": 4,
+      "wins": 4,
+      "losses": 0,
+      "points_for": 170,
+      "points_against": 32,
+      "sos": 0.25,
+      "avg_margin": 34.5
+    }
+  ]
 }
