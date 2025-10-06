@@ -1,6 +1,6 @@
 {
   "season": 2025,
-  "last_build_utc": "2025-10-06T17:03:17.926786",
+  "last_build_utc": "2025-10-06T17:14:14.181027",
   "notes": {
     "weeks_included": "1..16",
     "weights": {
@@ -24,10 +24,12 @@
       }
     },
     "rules": {
+      "fbs_only_ranking_set": true,
       "loss_bucket": true,
       "h2h_strict_same_losses": true,
       "weak_sos_penalty": true,
-      "bucket_gate": ">=1 quality win OR SoS>=0.52 OR (0-loss & SoS>=0.48)"
+      "front_gate": "by week>=5 need \u22652 FBS wins or (0-loss & SoS\u22650.55) to sit ahead in-bucket",
+      "resume_conf_aware": "Power4 wins carry more; strong-G5 wins recognized via SoS"
     }
   },
   "top25": [
@@ -40,13 +42,15 @@
       "points_against": 48,
       "sos": 0.708333,
       "avg_margin": 38.2,
-      "score": 1.239933,
+      "fbs_games": 4,
+      "fbs_wins": 4,
+      "score": 1.23214,
       "components": {
         "win_pct": 1.0,
         "sos": 0.708333,
         "margin_scaled": 1.528,
         "schedule_penalty": 0.0,
-        "resume": 0.942424,
+        "resume": 0.903461,
         "z": {
           "off_ppa": 1.8813,
           "def_ppa": -1.6039,
@@ -81,13 +85,15 @@
       "points_against": 25,
       "sos": 0.625,
       "avg_margin": 32.4,
-      "score": 1.220497,
+      "fbs_games": 4,
+      "fbs_wins": 4,
+      "score": 1.217937,
       "components": {
         "win_pct": 1.0,
         "sos": 0.625,
         "margin_scaled": 1.296,
         "schedule_penalty": 0.0,
-        "resume": 0.908099,
+        "resume": 0.895299,
         "z": {
           "off_ppa": 1.4677,
           "def_ppa": -2.3177,
@@ -122,13 +128,15 @@
       "points_against": 68,
       "sos": 0.6,
       "avg_margin": 21.4,
-      "score": 1.125996,
+      "fbs_games": 4,
+      "fbs_wins": 4,
+      "score": 1.126143,
       "components": {
         "win_pct": 1.0,
         "sos": 0.6,
         "margin_scaled": 0.856,
         "schedule_penalty": 0.0,
-        "resume": 0.992249,
+        "resume": 0.992986,
         "z": {
           "off_ppa": 0.6719,
           "def_ppa": -1.1002,
@@ -163,13 +171,15 @@
       "points_against": 56,
       "sos": 0.45,
       "avg_margin": 37.4,
-      "score": 1.109996,
+      "fbs_games": 4,
+      "fbs_wins": 4,
+      "score": 1.106232,
       "components": {
         "win_pct": 1.0,
         "sos": 0.45,
         "margin_scaled": 1.496,
         "schedule_penalty": -0.0075,
-        "resume": 0.781875,
+        "resume": 0.763053,
         "z": {
           "off_ppa": 1.4584,
           "def_ppa": -1.8756,
@@ -204,13 +214,15 @@
       "points_against": 36,
       "sos": 0.55,
       "avg_margin": 26.6,
-      "score": 1.090333,
+      "fbs_games": 4,
+      "fbs_wins": 4,
+      "score": 1.087021,
       "components": {
         "win_pct": 1.0,
         "sos": 0.55,
         "margin_scaled": 1.064,
         "schedule_penalty": 0.0,
-        "resume": 0.847201,
+        "resume": 0.830642,
         "z": {
           "off_ppa": 0.3534,
           "def_ppa": -2.3935,
@@ -245,13 +257,15 @@
       "points_against": 73,
       "sos": 0.416667,
       "avg_margin": 30.6,
-      "score": 1.051425,
+      "fbs_games": 4,
+      "fbs_wins": 4,
+      "score": 1.04665,
       "components": {
         "win_pct": 1.0,
         "sos": 0.416667,
         "margin_scaled": 1.224,
         "schedule_penalty": -0.0125,
-        "resume": 0.77966,
+        "resume": 0.755783,
         "z": {
           "off_ppa": 1.4227,
           "def_ppa": -1.495,
@@ -286,6 +300,8 @@
       "points_against": 105,
       "sos": 0.573333,
       "avg_margin": 13.8,
+      "fbs_games": 5,
+      "fbs_wins": 5,
       "score": 1.031088,
       "components": {
         "win_pct": 1.0,
@@ -327,13 +343,15 @@
       "points_against": 61,
       "sos": 0.35,
       "avg_margin": 34.4,
-      "score": 1.007506,
+      "fbs_games": 4,
+      "fbs_wins": 4,
+      "score": 1.002305,
       "components": {
         "win_pct": 1.0,
         "sos": 0.35,
         "margin_scaled": 1.376,
         "schedule_penalty": -0.0225,
-        "resume": 0.732049,
+        "resume": 0.706047,
         "z": {
           "off_ppa": 2.154,
           "def_ppa": -1.231,
@@ -368,13 +386,15 @@
       "points_against": 61,
       "sos": 0.416667,
       "avg_margin": 26.2,
-      "score": 0.992548,
+      "fbs_games": 4,
+      "fbs_wins": 4,
+      "score": 0.986888,
       "components": {
         "win_pct": 1.0,
         "sos": 0.416667,
         "margin_scaled": 1.048,
         "schedule_penalty": -0.0125,
-        "resume": 0.780767,
+        "resume": 0.752468,
         "z": {
           "off_ppa": 1.3168,
           "def_ppa": -1.7,
@@ -409,13 +429,15 @@
       "points_against": 94,
       "sos": 0.52,
       "avg_margin": 21.8,
-      "score": 0.95355,
+      "fbs_games": 5,
+      "fbs_wins": 5,
+      "score": 0.95078,
       "components": {
         "win_pct": 1.0,
         "sos": 0.52,
         "margin_scaled": 0.872,
         "schedule_penalty": 0.0,
-        "resume": 0.879311,
+        "resume": 0.865458,
         "z": {
           "off_ppa": 1.2354,
           "def_ppa": -0.2635,
@@ -442,47 +464,6 @@
       "rank": 10
     },
     {
-      "team": "Georgia Tech",
-      "wins": 5,
-      "losses": 0,
-      "games": 5,
-      "points_for": 185,
-      "points_against": 106,
-      "sos": 0.483333,
-      "avg_margin": 15.8,
-      "score": 0.825335,
-      "components": {
-        "win_pct": 1.0,
-        "sos": 0.483333,
-        "margin_scaled": 0.632,
-        "schedule_penalty": -0.0025,
-        "resume": 0.84388,
-        "z": {
-          "off_ppa": 0.3274,
-          "def_ppa": -0.17,
-          "off_sr": 0.5651,
-          "def_sr": -0.4556,
-          "off_expl": -0.5372,
-          "def_expl": -0.4508
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 0,
-            "r41_60": 1
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.03,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 11
-    },
-    {
       "team": "North Texas",
       "wins": 5,
       "losses": 0,
@@ -491,13 +472,15 @@
       "points_against": 100,
       "sos": 0.416667,
       "avg_margin": 24.8,
-      "score": 0.819147,
+      "fbs_games": 4,
+      "fbs_wins": 4,
+      "score": 0.829943,
       "components": {
         "win_pct": 1.0,
         "sos": 0.416667,
         "margin_scaled": 0.992,
         "schedule_penalty": -0.0125,
-        "resume": 0.70769,
+        "resume": 0.661668,
         "z": {
           "off_ppa": 1.1597,
           "def_ppa": -0.4029,
@@ -521,7 +504,7 @@
           "h2h_enforced": []
         }
       },
-      "rank": 12
+      "rank": 11
     },
     {
       "team": "Memphis",
@@ -532,13 +515,15 @@
       "points_against": 97,
       "sos": 0.386667,
       "avg_margin": 24.333,
-      "score": 0.816078,
+      "fbs_games": 5,
+      "fbs_wins": 5,
+      "score": 0.82778,
       "components": {
         "win_pct": 1.0,
         "sos": 0.386667,
         "margin_scaled": 0.973333,
         "schedule_penalty": -0.017,
-        "resume": 0.810663,
+        "resume": 0.769174,
         "z": {
           "off_ppa": 0.8763,
           "def_ppa": -0.6791,
@@ -562,6 +547,49 @@
           "h2h_enforced": []
         }
       },
+      "rank": 12
+    },
+    {
+      "team": "Georgia Tech",
+      "wins": 5,
+      "losses": 0,
+      "games": 5,
+      "points_for": 185,
+      "points_against": 106,
+      "sos": 0.483333,
+      "avg_margin": 15.8,
+      "fbs_games": 4,
+      "fbs_wins": 4,
+      "score": 0.821999,
+      "components": {
+        "win_pct": 1.0,
+        "sos": 0.483333,
+        "margin_scaled": 0.632,
+        "schedule_penalty": -0.0025,
+        "resume": 0.827199,
+        "z": {
+          "off_ppa": 0.3274,
+          "def_ppa": -0.17,
+          "off_sr": 0.5651,
+          "def_sr": -0.4556,
+          "off_expl": -0.5372,
+          "def_expl": -0.4508
+        },
+        "second_order": {
+          "quality_wins": {
+            "top15": 0,
+            "r16_40": 0,
+            "r41_60": 1
+          },
+          "bad_losses": {
+            "r50_79": 0,
+            "r80p": 0
+          },
+          "q_bonus": 0.03,
+          "badloss_pen": -0.0,
+          "h2h_enforced": []
+        }
+      },
       "rank": 13
     },
     {
@@ -573,13 +601,15 @@
       "points_against": 98,
       "sos": 0.358333,
       "avg_margin": 17.8,
-      "score": 0.809178,
+      "fbs_games": 4,
+      "fbs_wins": 4,
+      "score": 0.819843,
       "components": {
         "win_pct": 1.0,
         "sos": 0.358333,
         "margin_scaled": 0.712,
         "schedule_penalty": -0.02125,
-        "resume": 0.689974,
+        "resume": 0.643303,
         "z": {
           "off_ppa": 2.2566,
           "def_ppa": 0.2564,
@@ -614,13 +644,15 @@
       "points_against": 130,
       "sos": 0.25,
       "avg_margin": 9.6,
-      "score": 0.612381,
+      "fbs_games": 4,
+      "fbs_wins": 4,
+      "score": 0.623256,
       "components": {
         "win_pct": 1.0,
         "sos": 0.25,
         "margin_scaled": 0.384,
         "schedule_penalty": -0.0375,
-        "resume": 0.676687,
+        "resume": 0.631061,
         "z": {
           "off_ppa": 0.4968,
           "def_ppa": -0.2868,
@@ -655,13 +687,15 @@
       "points_against": 145,
       "sos": 0.591667,
       "avg_margin": 22.0,
-      "score": 0.876576,
+      "fbs_games": 4,
+      "fbs_wins": 3,
+      "score": 0.870265,
       "components": {
         "win_pct": 0.8,
         "sos": 0.591667,
         "margin_scaled": 0.88,
         "schedule_penalty": 0.0,
-        "resume": 0.714776,
+        "resume": 0.68322,
         "z": {
           "off_ppa": 1.5714,
           "def_ppa": -0.3787,
@@ -696,13 +730,15 @@
       "points_against": 78,
       "sos": 0.508333,
       "avg_margin": 17.6,
-      "score": 0.714155,
+      "fbs_games": 4,
+      "fbs_wins": 3,
+      "score": 0.723488,
       "components": {
         "win_pct": 0.8,
         "sos": 0.508333,
         "margin_scaled": 0.704,
         "schedule_penalty": 0.0,
-        "resume": 0.646072,
+        "resume": 0.592739,
         "z": {
           "off_ppa": -0.3918,
           "def_ppa": -1.551,
@@ -737,13 +773,15 @@
       "points_against": 109,
       "sos": 0.573333,
       "avg_margin": 13.167,
-      "score": 0.801483,
+      "fbs_games": 5,
+      "fbs_wins": 4,
+      "score": 0.798609,
       "components": {
         "win_pct": 0.833333,
         "sos": 0.573333,
         "margin_scaled": 0.526667,
         "schedule_penalty": 0.0,
-        "resume": 0.812047,
+        "resume": 0.797676,
         "z": {
           "off_ppa": 0.4012,
           "def_ppa": -0.4253,
@@ -780,13 +818,15 @@
       "points_against": 115,
       "sos": 0.526667,
       "avg_margin": 25.4,
-      "score": 0.907881,
+      "fbs_games": 5,
+      "fbs_wins": 4,
+      "score": 0.899811,
       "components": {
         "win_pct": 0.8,
         "sos": 0.526667,
         "margin_scaled": 1.016,
         "schedule_penalty": 0.0,
-        "resume": 0.664397,
+        "resume": 0.624047,
         "z": {
           "off_ppa": 2.9265,
           "def_ppa": -0.8456,
@@ -813,47 +853,6 @@
       "rank": 19
     },
     {
-      "team": "James Madison",
-      "wins": 4,
-      "losses": 1,
-      "games": 5,
-      "points_for": 139,
-      "points_against": 68,
-      "sos": 0.4,
-      "avg_margin": 14.2,
-      "score": 0.636536,
-      "components": {
-        "win_pct": 0.8,
-        "sos": 0.4,
-        "margin_scaled": 0.568,
-        "schedule_penalty": -0.015,
-        "resume": 0.588053,
-        "z": {
-          "off_ppa": -0.5058,
-          "def_ppa": -1.3518,
-          "off_sr": -0.0892,
-          "def_sr": -2.3295,
-          "off_expl": -0.5666,
-          "def_expl": 0.4646
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 0,
-            "r41_60": 0
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.0,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 20
-    },
-    {
       "team": "Cincinnati",
       "wins": 4,
       "losses": 1,
@@ -862,13 +861,15 @@
       "points_against": 104,
       "sos": 0.675,
       "avg_margin": 18.4,
-      "score": 0.960348,
+      "fbs_games": 4,
+      "fbs_wins": 3,
+      "score": 0.956481,
       "components": {
         "win_pct": 0.8,
         "sos": 0.675,
         "margin_scaled": 0.736,
         "schedule_penalty": 0.0,
-        "resume": 0.787743,
+        "resume": 0.768409,
         "z": {
           "off_ppa": 2.1158,
           "def_ppa": 0.3228,
@@ -895,6 +896,49 @@
           ]
         }
       },
+      "rank": 20
+    },
+    {
+      "team": "James Madison",
+      "wins": 4,
+      "losses": 1,
+      "games": 5,
+      "points_for": 139,
+      "points_against": 68,
+      "sos": 0.4,
+      "avg_margin": 14.2,
+      "fbs_games": 4,
+      "fbs_wins": 3,
+      "score": 0.645893,
+      "components": {
+        "win_pct": 0.8,
+        "sos": 0.4,
+        "margin_scaled": 0.568,
+        "schedule_penalty": -0.015,
+        "resume": 0.534841,
+        "z": {
+          "off_ppa": -0.5058,
+          "def_ppa": -1.3518,
+          "off_sr": -0.0892,
+          "def_sr": -2.3295,
+          "off_expl": -0.5666,
+          "def_expl": 0.4646
+        },
+        "second_order": {
+          "quality_wins": {
+            "top15": 0,
+            "r16_40": 0,
+            "r41_60": 0
+          },
+          "bad_losses": {
+            "r50_79": 0,
+            "r80p": 0
+          },
+          "q_bonus": 0.0,
+          "badloss_pen": -0.0,
+          "h2h_enforced": []
+        }
+      },
       "rank": 21
     },
     {
@@ -906,13 +950,15 @@
       "points_against": 116,
       "sos": 0.506667,
       "avg_margin": 23.833,
-      "score": 0.878845,
+      "fbs_games": 5,
+      "fbs_wins": 4,
+      "score": 0.871778,
       "components": {
         "win_pct": 0.833333,
         "sos": 0.506667,
         "margin_scaled": 0.953333,
         "schedule_penalty": 0.0,
-        "resume": 0.73526,
+        "resume": 0.699926,
         "z": {
           "off_ppa": 2.1628,
           "def_ppa": 0.1077,
@@ -947,13 +993,15 @@
       "points_against": 92,
       "sos": 0.6,
       "avg_margin": 16.2,
-      "score": 0.783701,
+      "fbs_games": 4,
+      "fbs_wins": 3,
+      "score": 0.777039,
       "components": {
         "win_pct": 0.8,
         "sos": 0.6,
         "margin_scaled": 0.648,
         "schedule_penalty": 0.0,
-        "resume": 0.720866,
+        "resume": 0.687556,
         "z": {
           "off_ppa": 0.4989,
           "def_ppa": -0.2783,
@@ -990,13 +1038,15 @@
       "points_against": 67,
       "sos": 0.45,
       "avg_margin": 16.6,
-      "score": 0.64378,
+      "fbs_games": 4,
+      "fbs_wins": 3,
+      "score": 0.654362,
       "components": {
         "win_pct": 0.8,
         "sos": 0.45,
         "margin_scaled": 0.664,
         "schedule_penalty": -0.0075,
-        "resume": 0.644356,
+        "resume": 0.597266,
         "z": {
           "off_ppa": -0.7582,
           "def_ppa": -1.7744,
@@ -1031,13 +1081,15 @@
       "points_against": 144,
       "sos": 0.673333,
       "avg_margin": 13.0,
-      "score": 0.832279,
+      "fbs_games": 5,
+      "fbs_wins": 4,
+      "score": 0.83109,
       "components": {
         "win_pct": 0.833333,
         "sos": 0.673333,
         "margin_scaled": 0.52,
         "schedule_penalty": 0.0,
-        "resume": 0.896972,
+        "resume": 0.891027,
         "z": {
           "off_ppa": 0.5259,
           "def_ppa": 0.9222,
