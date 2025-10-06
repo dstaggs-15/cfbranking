@@ -33,9 +33,6 @@ async function main(){
 
   aboutBtn.addEventListener("click", () => about.classList.toggle("hidden"));
 
-  // Verify CSS/JS path: these should 200
-  // console.log("CSS path test /script running…");
-
   const jsonUrl = `data/rankings.json?cb=${Date.now()}`;
   let data;
   try{
@@ -48,20 +45,12 @@ async function main(){
     return;
   }
 
-  // Update banner
-  try{
-    updated.textContent = `Last updated ${new Date(data.last_build_utc).toLocaleString()} • Season ${data.season}`;
-  }catch{}
-
+  updated.textContent = `Last updated ${new Date(data.last_build_utc).toLocaleString()} • Season ${data.season}`;
   const list = Array.isArray(data.top25) ? data.top25 : [];
-  if(list.length === 0){
-    empty.classList.remove("hidden");
-    return;
-  }
+  if(list.length === 0){ empty.classList.remove("hidden"); return; }
 
   grid.innerHTML = list.map(renderCard).join("");
 
-  // Expand/collapse per card (click or Enter/Space)
   grid.querySelectorAll(".card").forEach(card => {
     const details = card.querySelector(".details");
     const toggle = () => {
@@ -69,10 +58,9 @@ async function main(){
       card.setAttribute("aria-expanded", details.classList.contains("hidden") ? "false" : "true");
     };
     card.addEventListener("click", toggle);
-    card.addEventListener("keypress", (e) => {
+    card.addEventListener("keypress", e => {
       if(e.key === "Enter" || e.key === " "){ e.preventDefault(); toggle(); }
     });
   });
 }
-
 main();
