@@ -12,17 +12,28 @@
     <p id="updated"></p>
   </header>
 
-  <main id="rankings"></main>
+  <div id="about-section">
+    <button id="about-toggle">📘 About These Rankings</button>
+    <div id="about-content" class="hidden">
+      <p>
+        This model is 100% data-driven — no polls, no opinions.
+        Each team is evaluated using:
+      </p>
+      <ul>
+        <li><strong>Win Percentage</strong> – rewards consistent success.</li>
+        <li><strong>Average Scoring Margin</strong> – measures dominance in wins.</li>
+        <li><strong>Strength of Schedule (SoS)</strong> – adjusts for opponent quality.</li>
+      </ul>
+      <p>
+        These metrics combine into a composite score:
+        <br /><code>0.55 × Win% + 0.30 × SoS + 0.15 × (Margin ÷ 25)</code>
+        <br /><br />
+        Data updates automatically each week from the CFBD API.
+      </p>
+    </div>
+  </div>
 
-  <section id="about">
-    <h2>How Rankings Are Calculated</h2>
-    <p>
-      This system is completely independent from the AP or Coaches Poll.
-      It evaluates <strong>all completed FBS games</strong> using only real data:
-      win percentage, average scoring margin, and opponent strength (SoS).
-      These metrics combine into a weighted composite score that updates weekly.
-    </p>
-  </section>
+  <main id="rankings"></main>
 
 <script src="script.js"></script>
 </body>
