@@ -2,14 +2,11 @@
 """
 CFB Top 25 — SOS-first composite (no hard loss-bucket ordering)
 
-Key changes vs prior version:
-  • Sort by COMPOSITE SCORE directly (not by losses first).
-  • Heavier SOS (SOS1 + SOS2) weights.
-  • Undefeated soft-schedule brake so 5–0 cupcakes don't sit over elite 4–1's.
-  • Head-to-head is a SOFT tiebreaker: only flips when scores are basically tied.
+Primary ordering: COMPOSITE SCORE (heavier SOS). Head-to-head is a SOFT tiebreaker
+that only flips teams when their composite scores are basically tied.
 
-Résumé math is still FBS-vs-FBS for fairness. Overall records include FCS so TV
-records match fan expectations.
+Résumé math is FBS-vs-FBS (fair schedules). Overall records (wins/losses) include
+all games an FBS team plays (incl. FCS) so records match what fans see on TV.
 
 Env knobs (no code edits needed):
   W_WINPCT, W_SOS1, W_SOS2, W_MARGIN, W_QUAL, W_BAD, W_ADV_PPA, W_ADV_SR,
@@ -60,10 +57,10 @@ HOME_LOSS_PEN     = _f("HOME_LOSS_PEN",    -0.012)
 NEUTRAL_WIN_BONUS = _f("NEUTRAL_WIN_BONUS", 0.003)
 NEUTRAL_LOSS_PEN  = _f("NEUTRAL_LOSS_PEN", -0.006)
 
-# New: soft tiebreak and undefeated brake
-H2H_EPS         = _f("H2H_EPS", 0.015)     # only flip on H2H if score diff < this
-UNDEF_SOS_BRAKE = _f("UNDEF_SOS_BRAKE", -0.06)  # extra penalty for undefeated w/ weak SOS
-UNDEF_SOS_EDGE  = _f("UNDEF_SOS_EDGE", 0.52)    # "average" SOS threshold
+# Soft H2H + undefeated soft-schedule brake
+H2H_EPS         = _f("H2H_EPS", 0.015)        # only flip on H2H if |score diff| < this
+UNDEF_SOS_BRAKE = _f("UNDEF_SOS_BRAKE", -0.06) # added penalty for undefeated with weak SOS
+UNDEF_SOS_EDGE  = _f("UNDEF_SOS_EDGE", 0.52)   # “average” SOS threshold
 
 HEADERS = {"Authorization": f"Bearer {CFBD_API_KEY}"}
 DATA_DIR = "docs/data"
@@ -173,6 +170,11 @@ def latest_polls(year: int):
 
 # ---------- Build résumé ----------
 def rollup_regular(games, fbs_set):
+    """
+    Builds per-team tallies.
+      - overall wins/losses & points (FBS teams count all games for the public record)
+      - FBS-only wins/losses, FBS opponents, H2H list, location adjustments
+    """
     teams = {}
     def ensure(t):
         if t not in teams:
@@ -195,31 +197,50 @@ def rollup_regular(games, fbs_set):
 
         # overall record & points (FBS teams count all games to match public records)
         if h_fbs:
-            teams[h]["pf"] += hp; teams[h]["pa"] += ap
-            (teams[h]["wins"] if hp>ap else teams[h]["losses"]).__iadd__(1) if hp!=ap else None
-            teams[h]["results_all"].append(("W" if hp>ap else "L", a) if hp!=ap else ("", a))
+            teams[h]["pf"] += hp
+            teams[h]["pa"] += ap
+            if hp > ap:
+                teams[h]["wins"] += 1
+                teams[h]["results_all"].append(("W", a))
+            elif ap > hp:
+                teams[h]["losses"] += 1
+                teams[h]["results_all"].append(("L", a))
         if a_fbs:
-            teams[a]["pf"] += ap; teams[a]["pa"] += hp
-            (teams[a]["wins"] if ap>hp else teams[a]["losses"]).__iadd__(1) if ap!=hp else None
-            teams[a]["results_all"].append(("W" if ap>hp else "L", h) if ap!=hp else ("", h))
+            teams[a]["pf"] += ap
+            teams[a]["pa"] += hp
+            if ap > hp:
+                teams[a]["wins"] += 1
+                teams[a]["results_all"].append(("W", h))
+            elif hp > ap:
+                teams[a]["losses"] += 1
+                teams[a]["results_all"].append(("L", h))
 
         # FBS résumé + location
         if h_fbs and a_fbs:
-            teams[h]["fbs_opps"].add(a); teams[a]["fbs_opps"].add(h)
+            teams[h]["fbs_opps"].add(a)
+            teams[a]["fbs_opps"].add(h)
             if hp > ap:
-                teams[h]["fbs_wins"] += 1; teams[a]["fbs_losses"] += 1
-                teams[h]["results_fbs"].append(("W", a)); teams[a]["results_fbs"].append(("L", h))
+                teams[h]["fbs_wins"] += 1
+                teams[a]["fbs_losses"] += 1
+                teams[h]["results_fbs"].append(("W", a))
+                teams[a]["results_fbs"].append(("L", h))
                 if g["neutral"]:
-                    teams[h]["loc_adj"] += NEUTRAL_WIN_BONUS; teams[a]["loc_adj"] += NEUTRAL_LOSS_PEN
+                    teams[h]["loc_adj"] += NEUTRAL_WIN_BONUS
+                    teams[a]["loc_adj"] += NEUTRAL_LOSS_PEN
                 else:
-                    teams[h]["loc_adj"] += HOME_WIN_BONUS; teams[a]["loc_adj"] += ROAD_LOSS_PEN
+                    teams[h]["loc_adj"] += HOME_WIN_BONUS
+                    teams[a]["loc_adj"] += ROAD_LOSS_PEN
             elif ap > hp:
-                teams[a]["fbs_wins"] += 1; teams[h]["fbs_losses"] += 1
-                teams[a]["results_fbs"].append(("W", h)); teams[h]["results_fbs"].append(("L", a))
+                teams[a]["fbs_wins"] += 1
+                teams[h]["fbs_losses"] += 1
+                teams[a]["results_fbs"].append(("W", h))
+                teams[h]["results_fbs"].append(("L", a))
                 if g["neutral"]:
-                    teams[a]["loc_adj"] += NEUTRAL_WIN_BONUS; teams[h]["loc_adj"] += NEUTRAL_LOSS_PEN
+                    teams[a]["loc_adj"] += NEUTRAL_WIN_BONUS
+                    teams[h]["loc_adj"] += NEUTRAL_LOSS_PEN
                 else:
-                    teams[a]["loc_adj"] += ROAD_WIN_BONUS; teams[h]["loc_adj"] += HOME_LOSS_PEN
+                    teams[a]["loc_adj"] += ROAD_WIN_BONUS
+                    teams[h]["loc_adj"] += HOME_LOSS_PEN
     return teams
 
 def detect_conf_champs(postseason_games, fbs_set):
@@ -246,11 +267,12 @@ def compute_sos(teams):
         d["sos2"] = sum(teams[o]["sos1"] for o in opps)/len(opps) if opps else 0.5
 
 def provisional_seed(teams):
+    # Only for classifying QW/BL buckets
     seed = []
     for t, d in teams.items():
         games = d["wins"] + d["losses"]
         wp = (d["wins"]/games) if games>0 else 0.0
-        seed.append((t, 0.5*wp + 0.5*d.get("sos1",0.5)))  # seed only for QW/BL buckets
+        seed.append((t, 0.5*wp + 0.5*d.get("sos1",0.5)))
     seed.sort(key=lambda x: x[1], reverse=True)
     return {t:i+1 for i,(t,_) in enumerate(seed)}
 
@@ -283,7 +305,6 @@ def composite_for_team(team, d, qual, bad, adv, poll_comp, conf_champ_winner):
     avg_margin = ((d["pf"]-d["pa"])/games) if games>0 else 0.0
     avg_margin_norm = avg_margin / 28.0
 
-    # tiny efficiency seasoning
     adv_term = 0.0
     if adv:
         delta_ppa = max(-1.0, min(1.0, adv.get("off_ppa",0.0) - adv.get("def_ppa",0.0)))
@@ -292,12 +313,11 @@ def composite_for_team(team, d, qual, bad, adv, poll_comp, conf_champ_winner):
 
     weak_pen = W_WEAK_SOS * max(0.0, UNDEF_SOS_EDGE - sos1)
 
-    # NEW: Undefeated soft-schedule brake
+    # Undefeated soft-schedule brake
     undefeated = (d["losses"] == 0 and games > 0)
     undef_pen = 0.0
     if undefeated and sos1 < UNDEF_SOS_EDGE:
-        # scales with how far below average the schedule is
-        gap = (UNDEF_SOS_EDGE - sos1)  # ~0..0.2 typical early
+        gap = (UNDEF_SOS_EDGE - sos1)  # scales with how weak the slate is
         undef_pen = UNDEF_SOS_BRAKE * gap  # negative
 
     conf_bonus = W_CONF_CH if conf_champ_winner else 0.0
@@ -311,7 +331,6 @@ def composite_for_team(team, d, qual, bad, adv, poll_comp, conf_champ_winner):
         adv_term + weak_pen + undef_pen + conf_bonus +
         (POLLS_WEIGHT * poll_comp if poll_comp is not None else 0.0)
     )
-    # clamp
     return max(0.0, min(1.0, score)), {
         "win_pct": win_pct, "sos1": sos1, "sos2": sos2, "avg_margin": avg_margin,
         "qual_wins": qual, "bad_losses": bad, "loc_adj": d.get("loc_adj",0.0),
@@ -366,13 +385,12 @@ def build_rankings(year: int):
             conf_champ_winner=(t in champs)
         )
         games = d["wins"] + d["losses"]
-        avg_margin = parts["avg_margin"]
         rows.append({
             "team": t,
             "wins": d["wins"], "losses": d["losses"], "games": games,
             "points_for": int(d["pf"]), "points_against": int(d["pa"]),
             "sos": round(parts["sos1"], 6), "sos2": round(parts["sos2"], 6),
-            "avg_margin": round(avg_margin, 3),
+            "avg_margin": round(parts["avg_margin"], 3),
             "fbs_wins": d["fbs_wins"], "fbs_losses": d["fbs_losses"],
             "qual_wins": qual_map[t], "bad_losses": bad_map[t],
             "location_adj": round(parts["loc_adj"], 6),
@@ -391,7 +409,6 @@ def build_rankings(year: int):
     rows.sort(key=lambda r: (-r["score"], -r["fbs_wins"], r["losses"], r["team"]))
 
     # SOFT H2H tiebreak if basically tied
-    # Build a quick lookup of FBS results
     results_map = defaultdict(dict)
     for t, d in teams.items():
         for res, opp in d["results_fbs"]:
@@ -405,7 +422,7 @@ def build_rankings(year: int):
             diff = abs(A["score"] - B["score"])
             if diff <= H2H_EPS:
                 a, b = A["team"], B["team"]
-                if results_map.get(a, {}).get(b) == "L":  # B beat A
+                if results_map.get(a, {}).get(b) == "L":  # B beat A -> swap
                     rows[i], rows[i+1] = rows[i+1], rows[i]
                     changed = True
 
