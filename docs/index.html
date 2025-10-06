@@ -11,10 +11,33 @@
     <h1>CFB Top 25 — In-Season Metrics Only</h1>
     <p class="sub">Performance • Strength of Schedule • Quality Wins • Head-to-Head nudges</p>
     <div id="meta" class="muted"></div>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="rankings">Rankings</button>
+      <button class="tab" data-tab="about">How it works</button>
+    </nav>
   </header>
 
   <main class="container">
-    <section id="bubble-grid" class="grid"></section>
+    <section id="panel-rankings" class="panel active">
+      <section id="bubble-grid" class="grid"></section>
+    </section>
+
+    <section id="panel-about" class="panel">
+      <h2>Methodology (in-season only, no preseason bias)</h2>
+      <ol>
+        <li><strong>Data</strong>: We use CollegeFootballData advanced season stats and game results for the current season only (no carryover or preseason anchors).</li>
+        <li><strong>Performance</strong>: We build an offense score (PPA, success rate, explosiveness, points per opportunity) and a defense score (same metrics, inverted where lower is better). Metrics are standardized (z-scores) and combined into a 0–100 <em>Performance</em> score.</li>
+        <li><strong>Strength of Schedule (SOS)</strong>: Rating-based SOS = the average Performance of a team’s opponents.</li>
+        <li><strong>Quality Wins</strong>: For each win, we add a scaled bonus based on the opponent’s Performance and their SOS. Beating high-quality teams matters.</li>
+        <li><strong>Head-to-Head</strong>: If Team A beat Team B and their final scores are nearly tied, we give A a small nudge so the ordering respects obvious head-to-head results without overriding large résumé gaps.</li>
+        <li><strong>Final score</strong>: <code>0.45 × Performance + 0.35 × SOS + 0.20 × QualityWins</code>. We tune these weights over time.</li>
+        <li><strong>Team colors</strong>: Pulled from CFBD team info (primary & alt) each build; if missing, we create a pleasant fallback palette.</li>
+      </ol>
+      <p class="muted small">
+        Sources: CFBD advanced stats fields (e.g., PPA, success rate, explosiveness, points per opportunity) and team info (colors) via <code>cfbd</code> client. See the SportsDataverse/cfbfastR docs for advanced stats variables and the team info color fields; both are wrappers over CollegeFootballData.com.
+      </p>
+    </section>
   </main>
 
   <!-- Modal -->
