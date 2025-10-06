@@ -1,1119 +1,306 @@
 {
   "season": 2025,
-  "last_build_utc": "2025-10-06T17:14:14.181027",
-  "notes": {
-    "weeks_included": "1..16",
-    "weights": {
-      "win_pct": 0.45,
-      "sos": 0.22,
-      "margin": 0.03,
-      "delta_ppa": 0.05,
-      "delta_sr": 0.03,
-      "delta_expl": 0.02,
-      "resume": 0.2
-    },
-    "tiers": {
-      "quality": {
-        "top15": 0.1,
-        "r16_40": 0.06,
-        "r41_60": 0.03
-      },
-      "bad": {
-        "r50_79": -0.06,
-        "r80p": -0.09
-      }
-    },
-    "rules": {
-      "fbs_only_ranking_set": true,
-      "loss_bucket": true,
-      "h2h_strict_same_losses": true,
-      "weak_sos_penalty": true,
-      "front_gate": "by week>=5 need \u22652 FBS wins or (0-loss & SoS\u22650.55) to sit ahead in-bucket",
-      "resume_conf_aware": "Power4 wins carry more; strong-G5 wins recognized via SoS"
-    }
-  },
+  "last_build_utc": "2025-10-06T17:40:38.667642",
   "top25": [
     {
+      "rank": 1,
       "team": "Indiana",
+      "score": 0.7872,
+      "games": 5,
       "wins": 5,
       "losses": 0,
-      "games": 5,
       "points_for": 239,
       "points_against": 48,
-      "sos": 0.708333,
-      "avg_margin": 38.2,
-      "fbs_games": 4,
-      "fbs_wins": 4,
-      "score": 1.23214,
-      "components": {
-        "win_pct": 1.0,
-        "sos": 0.708333,
-        "margin_scaled": 1.528,
-        "schedule_penalty": 0.0,
-        "resume": 0.903461,
-        "z": {
-          "off_ppa": 1.8813,
-          "def_ppa": -1.6039,
-          "off_sr": 2.3287,
-          "def_sr": -2.3195,
-          "off_expl": -0.6096,
-          "def_expl": 1.5869
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 1,
-            "r16_40": 0,
-            "r41_60": 1
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.13,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 1
+      "sos": 0.5,
+      "avg_margin": 38.2
     },
     {
-      "team": "Ohio State",
-      "wins": 5,
-      "losses": 0,
-      "games": 5,
-      "points_for": 187,
-      "points_against": 25,
-      "sos": 0.625,
-      "avg_margin": 32.4,
-      "fbs_games": 4,
-      "fbs_wins": 4,
-      "score": 1.217937,
-      "components": {
-        "win_pct": 1.0,
-        "sos": 0.625,
-        "margin_scaled": 1.296,
-        "schedule_penalty": 0.0,
-        "resume": 0.895299,
-        "z": {
-          "off_ppa": 1.4677,
-          "def_ppa": -2.3177,
-          "off_sr": 2.3174,
-          "def_sr": -1.4099,
-          "off_expl": -1.3381,
-          "def_expl": -2.4084
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 1,
-            "r41_60": 1
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.09,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 2
-    },
-    {
-      "team": "Miami",
-      "wins": 5,
-      "losses": 0,
-      "games": 5,
-      "points_for": 175,
-      "points_against": 68,
-      "sos": 0.6,
-      "avg_margin": 21.4,
-      "fbs_games": 4,
-      "fbs_wins": 4,
-      "score": 1.126143,
-      "components": {
-        "win_pct": 1.0,
-        "sos": 0.6,
-        "margin_scaled": 0.856,
-        "schedule_penalty": 0.0,
-        "resume": 0.992986,
-        "z": {
-          "off_ppa": 0.6719,
-          "def_ppa": -1.1002,
-          "off_sr": 1.2013,
-          "def_sr": -1.1803,
-          "off_expl": -1.1991,
-          "def_expl": -0.1899
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 3,
-            "r41_60": 0
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.18,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 3
-    },
-    {
+      "rank": 2,
       "team": "Texas Tech",
+      "score": 0.779,
+      "games": 5,
       "wins": 5,
       "losses": 0,
-      "games": 5,
       "points_for": 243,
       "points_against": 56,
-      "sos": 0.45,
-      "avg_margin": 37.4,
-      "fbs_games": 4,
-      "fbs_wins": 4,
-      "score": 1.106232,
-      "components": {
-        "win_pct": 1.0,
-        "sos": 0.45,
-        "margin_scaled": 1.496,
-        "schedule_penalty": -0.0075,
-        "resume": 0.763053,
-        "z": {
-          "off_ppa": 1.4584,
-          "def_ppa": -1.8756,
-          "off_sr": 1.4443,
-          "def_sr": -1.9686,
-          "off_expl": -0.047,
-          "def_expl": -0.4548
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 1,
-            "r41_60": 1
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.09,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 4
+      "sos": 0.5,
+      "avg_margin": 37.4
     },
     {
-      "team": "Oklahoma",
+      "rank": 3,
+      "team": "Ohio State",
+      "score": 0.7682,
+      "games": 5,
       "wins": 5,
       "losses": 0,
-      "games": 5,
-      "points_for": 169,
-      "points_against": 36,
-      "sos": 0.55,
-      "avg_margin": 26.6,
-      "fbs_games": 4,
-      "fbs_wins": 4,
-      "score": 1.087021,
-      "components": {
-        "win_pct": 1.0,
-        "sos": 0.55,
-        "margin_scaled": 1.064,
-        "schedule_penalty": 0.0,
-        "resume": 0.830642,
-        "z": {
-          "off_ppa": 0.3534,
-          "def_ppa": -2.3935,
-          "off_sr": 0.8666,
-          "def_sr": -3.5508,
-          "off_expl": -0.5075,
-          "def_expl": 1.5871
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 1,
-            "r41_60": 1
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.09,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 5
+      "points_for": 187,
+      "points_against": 25,
+      "sos": 0.5,
+      "avg_margin": 32.4
     },
     {
-      "team": "Missouri",
-      "wins": 5,
-      "losses": 0,
-      "games": 5,
-      "points_for": 226,
-      "points_against": 73,
-      "sos": 0.416667,
-      "avg_margin": 30.6,
-      "fbs_games": 4,
-      "fbs_wins": 4,
-      "score": 1.04665,
-      "components": {
-        "win_pct": 1.0,
-        "sos": 0.416667,
-        "margin_scaled": 1.224,
-        "schedule_penalty": -0.0125,
-        "resume": 0.755783,
-        "z": {
-          "off_ppa": 1.4227,
-          "def_ppa": -1.495,
-          "off_sr": 1.8634,
-          "def_sr": -1.8932,
-          "off_expl": -0.4802,
-          "def_expl": 0.4687
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 1,
-            "r41_60": 1
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.09,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 6
-    },
-    {
-      "team": "Texas A&M",
-      "wins": 5,
-      "losses": 0,
-      "games": 5,
-      "points_for": 174,
-      "points_against": 105,
-      "sos": 0.573333,
-      "avg_margin": 13.8,
-      "fbs_games": 5,
-      "fbs_wins": 5,
-      "score": 1.031088,
-      "components": {
-        "win_pct": 1.0,
-        "sos": 0.573333,
-        "margin_scaled": 0.552,
-        "schedule_penalty": 0.0,
-        "resume": 1.0,
-        "z": {
-          "off_ppa": 0.4469,
-          "def_ppa": -0.637,
-          "off_sr": 0.3056,
-          "def_sr": -1.2464,
-          "off_expl": 0.0481,
-          "def_expl": 0.6661
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 2,
-            "r41_60": 1
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.15,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 7
-    },
-    {
+      "rank": 4,
       "team": "Oregon",
+      "score": 0.768,
+      "games": 5,
       "wins": 5,
       "losses": 0,
-      "games": 5,
       "points_for": 233,
       "points_against": 61,
-      "sos": 0.35,
-      "avg_margin": 34.4,
-      "fbs_games": 4,
-      "fbs_wins": 4,
-      "score": 1.002305,
-      "components": {
-        "win_pct": 1.0,
-        "sos": 0.35,
-        "margin_scaled": 1.376,
-        "schedule_penalty": -0.0225,
-        "resume": 0.706047,
-        "z": {
-          "off_ppa": 2.154,
-          "def_ppa": -1.231,
-          "off_sr": 1.4725,
-          "def_sr": -0.9435,
-          "off_expl": 1.1198,
-          "def_expl": -1.0595
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 0,
-            "r41_60": 1
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.03,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 8
+      "sos": 0.5,
+      "avg_margin": 34.4
     },
     {
-      "team": "BYU",
+      "rank": 5,
+      "team": "Missouri",
+      "score": 0.7529,
+      "games": 5,
       "wins": 5,
       "losses": 0,
+      "points_for": 226,
+      "points_against": 73,
+      "sos": 0.5,
+      "avg_margin": 30.6
+    },
+    {
+      "rank": 6,
+      "team": "Salisbury",
+      "score": 0.7417,
+      "games": 4,
+      "wins": 4,
+      "losses": 0,
+      "points_for": 214,
+      "points_against": 44,
+      "sos": 0.5,
+      "avg_margin": 42.5
+    },
+    {
+      "rank": 7,
+      "team": "Oklahoma",
+      "score": 0.7377,
       "games": 5,
+      "wins": 5,
+      "losses": 0,
+      "points_for": 169,
+      "points_against": 36,
+      "sos": 0.5,
+      "avg_margin": 26.6
+    },
+    {
+      "rank": 8,
+      "team": "Harvard",
+      "score": 0.7344,
+      "games": 3,
+      "wins": 3,
+      "losses": 0,
+      "points_for": 159,
+      "points_against": 38,
+      "sos": 0.5,
+      "avg_margin": 40.3
+    },
+    {
+      "rank": 9,
+      "team": "BYU",
+      "score": 0.7341,
+      "games": 5,
+      "wins": 5,
+      "losses": 0,
       "points_for": 192,
       "points_against": 61,
-      "sos": 0.416667,
-      "avg_margin": 26.2,
-      "fbs_games": 4,
-      "fbs_wins": 4,
-      "score": 0.986888,
-      "components": {
-        "win_pct": 1.0,
-        "sos": 0.416667,
-        "margin_scaled": 1.048,
-        "schedule_penalty": -0.0125,
-        "resume": 0.752468,
-        "z": {
-          "off_ppa": 1.3168,
-          "def_ppa": -1.7,
-          "off_sr": 1.0161,
-          "def_sr": -0.8233,
-          "off_expl": 0.0947,
-          "def_expl": -1.8937
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 0,
-            "r41_60": 1
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.03,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 9
+      "sos": 0.5,
+      "avg_margin": 26.2
     },
     {
-      "team": "Ole Miss",
+      "rank": 10,
+      "team": "Tennessee Tech",
+      "score": 0.7325,
+      "games": 4,
+      "wins": 4,
+      "losses": 0,
+      "points_for": 218,
+      "points_against": 59,
+      "sos": 0.5,
+      "avg_margin": 39.8
+    },
+    {
+      "rank": 11,
+      "team": "Harding University",
+      "score": 0.732,
+      "games": 5,
       "wins": 5,
       "losses": 0,
-      "games": 5,
-      "points_for": 203,
-      "points_against": 94,
-      "sos": 0.52,
-      "avg_margin": 21.8,
-      "fbs_games": 5,
-      "fbs_wins": 5,
-      "score": 0.95078,
-      "components": {
-        "win_pct": 1.0,
-        "sos": 0.52,
-        "margin_scaled": 0.872,
-        "schedule_penalty": 0.0,
-        "resume": 0.865458,
-        "z": {
-          "off_ppa": 1.2354,
-          "def_ppa": -0.2635,
-          "off_sr": 1.2083,
-          "def_sr": -0.4127,
-          "off_expl": 0.1014,
-          "def_expl": -0.0761
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 1,
-            "r41_60": 0
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.06,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 10
+      "points_for": 224,
+      "points_against": 26,
+      "sos": 0.5,
+      "avg_margin": 39.6
     },
     {
+      "rank": 12,
+      "team": "Kutztown University",
+      "score": 0.732,
+      "games": 5,
+      "wins": 5,
+      "losses": 0,
+      "points_for": 229,
+      "points_against": 31,
+      "sos": 0.5,
+      "avg_margin": 39.6
+    },
+    {
+      "rank": 13,
+      "team": "North Central College",
+      "score": 0.7317,
+      "games": 4,
+      "wins": 4,
+      "losses": 0,
+      "points_for": 186,
+      "points_against": 28,
+      "sos": 0.5,
+      "avg_margin": 39.5
+    },
+    {
+      "rank": 14,
+      "team": "Adrian",
+      "score": 0.726,
+      "games": 5,
+      "wins": 5,
+      "losses": 0,
+      "points_for": 230,
+      "points_against": 41,
+      "sos": 0.5,
+      "avg_margin": 37.8
+    },
+    {
+      "rank": 15,
+      "team": "Trinity University TX",
+      "score": 0.7242,
+      "games": 4,
+      "wins": 4,
+      "losses": 0,
+      "points_for": 185,
+      "points_against": 36,
+      "sos": 0.5,
+      "avg_margin": 37.2
+    },
+    {
+      "rank": 16,
+      "team": "Depauw",
+      "score": 0.7233,
+      "games": 5,
+      "wins": 5,
+      "losses": 0,
+      "points_for": 213,
+      "points_against": 28,
+      "sos": 0.5,
+      "avg_margin": 37.0
+    },
+    {
+      "rank": 17,
+      "team": "Ferris State",
+      "score": 0.7225,
+      "games": 4,
+      "wins": 4,
+      "losses": 0,
+      "points_for": 204,
+      "points_against": 57,
+      "sos": 0.5,
+      "avg_margin": 36.8
+    },
+    {
+      "rank": 18,
+      "team": "North Dakota State",
+      "score": 0.7173,
+      "games": 5,
+      "wins": 5,
+      "losses": 0,
+      "points_for": 222,
+      "points_against": 46,
+      "sos": 0.5,
+      "avg_margin": 35.2
+    },
+    {
+      "rank": 19,
+      "team": "Wisconsin-Platteville",
+      "score": 0.715,
+      "games": 4,
+      "wins": 4,
+      "losses": 0,
+      "points_for": 177,
+      "points_against": 39,
+      "sos": 0.5,
+      "avg_margin": 34.5
+    },
+    {
+      "rank": 20,
+      "team": "Bethel (MN)",
+      "score": 0.715,
+      "games": 4,
+      "wins": 4,
+      "losses": 0,
+      "points_for": 170,
+      "points_against": 32,
+      "sos": 0.5,
+      "avg_margin": 34.5
+    },
+    {
+      "rank": 21,
       "team": "North Texas",
+      "score": 0.7145,
+      "games": 5,
       "wins": 5,
       "losses": 0,
-      "games": 5,
       "points_for": 224,
       "points_against": 100,
-      "sos": 0.416667,
-      "avg_margin": 24.8,
-      "fbs_games": 4,
-      "fbs_wins": 4,
-      "score": 0.829943,
-      "components": {
-        "win_pct": 1.0,
-        "sos": 0.416667,
-        "margin_scaled": 0.992,
-        "schedule_penalty": -0.0125,
-        "resume": 0.661668,
-        "z": {
-          "off_ppa": 1.1597,
-          "def_ppa": -0.4029,
-          "off_sr": 1.3655,
-          "def_sr": -0.6552,
-          "off_expl": -0.3439,
-          "def_expl": -0.3405
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 0,
-            "r41_60": 0
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.0,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 11
+      "sos": 0.5,
+      "avg_margin": 24.8
     },
     {
+      "rank": 22,
       "team": "Memphis",
+      "score": 0.7102,
+      "games": 6,
       "wins": 6,
       "losses": 0,
-      "games": 6,
       "points_for": 243,
       "points_against": 97,
-      "sos": 0.386667,
-      "avg_margin": 24.333,
-      "fbs_games": 5,
-      "fbs_wins": 5,
-      "score": 0.82778,
-      "components": {
-        "win_pct": 1.0,
-        "sos": 0.386667,
-        "margin_scaled": 0.973333,
-        "schedule_penalty": -0.017,
-        "resume": 0.769174,
-        "z": {
-          "off_ppa": 0.8763,
-          "def_ppa": -0.6791,
-          "off_sr": 0.7412,
-          "def_sr": -0.4324,
-          "off_expl": 0.5869,
-          "def_expl": -0.0981
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 0,
-            "r41_60": 0
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.0,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 12
+      "sos": 0.5,
+      "avg_margin": 24.3
     },
     {
-      "team": "Georgia Tech",
+      "rank": 23,
+      "team": "Miami",
+      "score": 0.7056,
+      "games": 5,
       "wins": 5,
       "losses": 0,
-      "games": 5,
-      "points_for": 185,
-      "points_against": 106,
-      "sos": 0.483333,
-      "avg_margin": 15.8,
-      "fbs_games": 4,
-      "fbs_wins": 4,
-      "score": 0.821999,
-      "components": {
-        "win_pct": 1.0,
-        "sos": 0.483333,
-        "margin_scaled": 0.632,
-        "schedule_penalty": -0.0025,
-        "resume": 0.827199,
-        "z": {
-          "off_ppa": 0.3274,
-          "def_ppa": -0.17,
-          "off_sr": 0.5651,
-          "def_sr": -0.4556,
-          "off_expl": -0.5372,
-          "def_expl": -0.4508
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 0,
-            "r41_60": 1
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.03,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 13
-    },
-    {
-      "team": "Navy",
-      "wins": 5,
-      "losses": 0,
-      "games": 5,
-      "points_for": 187,
-      "points_against": 98,
-      "sos": 0.358333,
-      "avg_margin": 17.8,
-      "fbs_games": 4,
-      "fbs_wins": 4,
-      "score": 0.819843,
-      "components": {
-        "win_pct": 1.0,
-        "sos": 0.358333,
-        "margin_scaled": 0.712,
-        "schedule_penalty": -0.02125,
-        "resume": 0.643303,
-        "z": {
-          "off_ppa": 2.2566,
-          "def_ppa": 0.2564,
-          "off_sr": 1.828,
-          "def_sr": -0.3002,
-          "off_expl": 0.8727,
-          "def_expl": 0.9536
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 0,
-            "r41_60": 0
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.0,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 14
-    },
-    {
-      "team": "UNLV",
-      "wins": 5,
-      "losses": 0,
-      "games": 5,
-      "points_for": 178,
-      "points_against": 130,
-      "sos": 0.25,
-      "avg_margin": 9.6,
-      "fbs_games": 4,
-      "fbs_wins": 4,
-      "score": 0.623256,
-      "components": {
-        "win_pct": 1.0,
-        "sos": 0.25,
-        "margin_scaled": 0.384,
-        "schedule_penalty": -0.0375,
-        "resume": 0.631061,
-        "z": {
-          "off_ppa": 0.4968,
-          "def_ppa": -0.2868,
-          "off_sr": 0.6267,
-          "def_sr": 0.6987,
-          "off_expl": -0.7094,
-          "def_expl": 0.2404
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 0,
-            "r41_60": 0
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.0,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 15
-    },
-    {
-      "team": "Tennessee",
-      "wins": 4,
-      "losses": 1,
-      "games": 5,
-      "points_for": 255,
-      "points_against": 145,
-      "sos": 0.591667,
-      "avg_margin": 22.0,
-      "fbs_games": 4,
-      "fbs_wins": 3,
-      "score": 0.870265,
-      "components": {
-        "win_pct": 0.8,
-        "sos": 0.591667,
-        "margin_scaled": 0.88,
-        "schedule_penalty": 0.0,
-        "resume": 0.68322,
-        "z": {
-          "off_ppa": 1.5714,
-          "def_ppa": -0.3787,
-          "off_sr": 1.4667,
-          "def_sr": 0.3257,
-          "off_expl": 0.0552,
-          "def_expl": -1.2108
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 1,
-            "r41_60": 0
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.06,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 16
-    },
-    {
-      "team": "Arizona",
-      "wins": 4,
-      "losses": 1,
-      "games": 5,
-      "points_for": 166,
-      "points_against": 78,
-      "sos": 0.508333,
-      "avg_margin": 17.6,
-      "fbs_games": 4,
-      "fbs_wins": 3,
-      "score": 0.723488,
-      "components": {
-        "win_pct": 0.8,
-        "sos": 0.508333,
-        "margin_scaled": 0.704,
-        "schedule_penalty": 0.0,
-        "resume": 0.592739,
-        "z": {
-          "off_ppa": -0.3918,
-          "def_ppa": -1.551,
-          "off_sr": -0.1462,
-          "def_sr": -2.0437,
-          "off_expl": 0.1967,
-          "def_expl": 0.3417
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 0,
-            "r41_60": 0
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.0,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 17
-    },
-    {
-      "team": "Iowa State",
-      "wins": 5,
-      "losses": 1,
-      "games": 6,
-      "points_for": 188,
-      "points_against": 109,
-      "sos": 0.573333,
-      "avg_margin": 13.167,
-      "fbs_games": 5,
-      "fbs_wins": 4,
-      "score": 0.798609,
-      "components": {
-        "win_pct": 0.833333,
-        "sos": 0.573333,
-        "margin_scaled": 0.526667,
-        "schedule_penalty": 0.0,
-        "resume": 0.797676,
-        "z": {
-          "off_ppa": 0.4012,
-          "def_ppa": -0.4253,
-          "off_sr": 0.1416,
-          "def_sr": -0.1193,
-          "off_expl": 0.0031,
-          "def_expl": -0.6462
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 1,
-            "r41_60": 0
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.06,
-          "badloss_pen": -0.0,
-          "h2h_enforced": [
-            "Iowa State > Arizona (same-loss)"
-          ]
-        }
-      },
-      "rank": 18
-    },
-    {
-      "team": "USC",
-      "wins": 4,
-      "losses": 1,
-      "games": 5,
-      "points_for": 242,
-      "points_against": 115,
-      "sos": 0.526667,
-      "avg_margin": 25.4,
-      "fbs_games": 5,
-      "fbs_wins": 4,
-      "score": 0.899811,
-      "components": {
-        "win_pct": 0.8,
-        "sos": 0.526667,
-        "margin_scaled": 1.016,
-        "schedule_penalty": 0.0,
-        "resume": 0.624047,
-        "z": {
-          "off_ppa": 2.9265,
-          "def_ppa": -0.8456,
-          "off_sr": 2.6269,
-          "def_sr": 0.1153,
-          "off_expl": 0.6328,
-          "def_expl": 0.3977
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 0,
-            "r41_60": 0
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.0,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 19
-    },
-    {
-      "team": "Cincinnati",
-      "wins": 4,
-      "losses": 1,
-      "games": 5,
-      "points_for": 196,
-      "points_against": 104,
-      "sos": 0.675,
-      "avg_margin": 18.4,
-      "fbs_games": 4,
-      "fbs_wins": 3,
-      "score": 0.956481,
-      "components": {
-        "win_pct": 0.8,
-        "sos": 0.675,
-        "margin_scaled": 0.736,
-        "schedule_penalty": 0.0,
-        "resume": 0.768409,
-        "z": {
-          "off_ppa": 2.1158,
-          "def_ppa": 0.3228,
-          "off_sr": 1.7294,
-          "def_sr": 0.2769,
-          "off_expl": 0.6759,
-          "def_expl": -0.2738
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 2,
-            "r41_60": 0
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.12,
-          "badloss_pen": -0.0,
-          "h2h_enforced": [
-            "Cincinnati > Iowa State (same-loss)",
-            "Cincinnati > Iowa State (same-loss)"
-          ]
-        }
-      },
-      "rank": 20
-    },
-    {
-      "team": "James Madison",
-      "wins": 4,
-      "losses": 1,
-      "games": 5,
-      "points_for": 139,
+      "points_for": 175,
       "points_against": 68,
-      "sos": 0.4,
-      "avg_margin": 14.2,
-      "fbs_games": 4,
-      "fbs_wins": 3,
-      "score": 0.645893,
-      "components": {
-        "win_pct": 0.8,
-        "sos": 0.4,
-        "margin_scaled": 0.568,
-        "schedule_penalty": -0.015,
-        "resume": 0.534841,
-        "z": {
-          "off_ppa": -0.5058,
-          "def_ppa": -1.3518,
-          "off_sr": -0.0892,
-          "def_sr": -2.3295,
-          "off_expl": -0.5666,
-          "def_expl": 0.4646
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 0,
-            "r41_60": 0
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.0,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 21
+      "sos": 0.5,
+      "avg_margin": 21.4
     },
     {
-      "team": "Vanderbilt",
-      "wins": 5,
-      "losses": 1,
-      "games": 6,
-      "points_for": 259,
-      "points_against": 116,
-      "sos": 0.506667,
-      "avg_margin": 23.833,
-      "fbs_games": 5,
-      "fbs_wins": 4,
-      "score": 0.871778,
-      "components": {
-        "win_pct": 0.833333,
-        "sos": 0.506667,
-        "margin_scaled": 0.953333,
-        "schedule_penalty": 0.0,
-        "resume": 0.699926,
-        "z": {
-          "off_ppa": 2.1628,
-          "def_ppa": 0.1077,
-          "off_sr": 2.0857,
-          "def_sr": 0.0015,
-          "off_expl": 0.8135,
-          "def_expl": -0.2586
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 0,
-            "r41_60": 1
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.03,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 22
-    },
-    {
-      "team": "Georgia",
-      "wins": 4,
-      "losses": 1,
+      "rank": 24,
+      "team": "Ole Miss",
+      "score": 0.7029,
       "games": 5,
-      "points_for": 173,
-      "points_against": 92,
-      "sos": 0.6,
-      "avg_margin": 16.2,
-      "fbs_games": 4,
-      "fbs_wins": 3,
-      "score": 0.777039,
-      "components": {
-        "win_pct": 0.8,
-        "sos": 0.6,
-        "margin_scaled": 0.648,
-        "schedule_penalty": 0.0,
-        "resume": 0.687556,
-        "z": {
-          "off_ppa": 0.4989,
-          "def_ppa": -0.2783,
-          "off_sr": 1.0432,
-          "def_sr": -0.6917,
-          "off_expl": -1.4207,
-          "def_expl": -0.2799
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 1,
-            "r41_60": 0
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.06,
-          "badloss_pen": -0.0,
-          "h2h_enforced": [
-            "Georgia > Tennessee (same-loss)"
-          ]
-        }
-      },
-      "rank": 23
-    },
-    {
-      "team": "Maryland",
-      "wins": 4,
-      "losses": 1,
-      "games": 5,
-      "points_for": 150,
-      "points_against": 67,
-      "sos": 0.45,
-      "avg_margin": 16.6,
-      "fbs_games": 4,
-      "fbs_wins": 3,
-      "score": 0.654362,
-      "components": {
-        "win_pct": 0.8,
-        "sos": 0.45,
-        "margin_scaled": 0.664,
-        "schedule_penalty": -0.0075,
-        "resume": 0.597266,
-        "z": {
-          "off_ppa": -0.7582,
-          "def_ppa": -1.7744,
-          "off_sr": -0.956,
-          "def_sr": -1.4214,
-          "off_expl": 0.1152,
-          "def_expl": 0.1794
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 0,
-            "r16_40": 0,
-            "r41_60": 0
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.0,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 24
-    },
-    {
-      "team": "Illinois",
       "wins": 5,
-      "losses": 1,
+      "losses": 0,
+      "points_for": 203,
+      "points_against": 94,
+      "sos": 0.5,
+      "avg_margin": 21.8
+    },
+    {
+      "rank": 25,
+      "team": "Tarleton State",
+      "score": 0.7028,
       "games": 6,
-      "points_for": 222,
-      "points_against": 144,
-      "sos": 0.673333,
-      "avg_margin": 13.0,
-      "fbs_games": 5,
-      "fbs_wins": 4,
-      "score": 0.83109,
-      "components": {
-        "win_pct": 0.833333,
-        "sos": 0.673333,
-        "margin_scaled": 0.52,
-        "schedule_penalty": 0.0,
-        "resume": 0.891027,
-        "z": {
-          "off_ppa": 0.5259,
-          "def_ppa": 0.9222,
-          "off_sr": 0.4596,
-          "def_sr": 1.1778,
-          "off_expl": 0.8152,
-          "def_expl": -0.4604
-        },
-        "second_order": {
-          "quality_wins": {
-            "top15": 1,
-            "r16_40": 0,
-            "r41_60": 1
-          },
-          "bad_losses": {
-            "r50_79": 0,
-            "r80p": 0
-          },
-          "q_bonus": 0.13,
-          "badloss_pen": -0.0,
-          "h2h_enforced": []
-        }
-      },
-      "rank": 25
+      "wins": 6,
+      "losses": 0,
+      "points_for": 291,
+      "points_against": 106,
+      "sos": 0.5,
+      "avg_margin": 30.8
     }
   ]
 }
