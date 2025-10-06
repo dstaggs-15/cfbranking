@@ -11,9 +11,10 @@ API_BASE = "https://api.collegefootballdata.com"
 API_KEY = os.getenv("CFBD_API_KEY", "")
 YEAR = int(os.getenv("YEAR") or datetime.datetime.now().year)
 
-# ---------------- HTTP ----------------
+# ====================== HTTP ======================
 
 def cfbd_get(path: str, params: dict | None = None, tries: int = 3, backoff: float = 1.6):
+    """GET helper with CFBD Bearer auth + simple retry."""
     if not API_KEY:
         raise RuntimeError("CFBD_API_KEY is not set.")
     url = f"{API_BASE}/{path.lstrip('/')}"
@@ -41,7 +42,7 @@ def cfbd_get(path: str, params: dict | None = None, tries: int = 3, backoff: flo
         print(f"⚠️ CFBD {code} {path} {params} :: {last_text[:300]}")
     return []
 
-# --------------- FETCH HELPERS ----------------
+# ====================== FETCHERS ======================
 
 def fetch_fbs_names(year: int) -> Set[str]:
     data = cfbd_get("teams/fbs", {"year": year})
@@ -50,6 +51,7 @@ def fetch_fbs_names(year: int) -> Set[str]:
     return names
 
 def fetch_current_week(year: int) -> int:
+    """Current regular-season week based on calendar entries that have started."""
     data = cfbd_get("calendar", {"year": year})
     if not isinstance(data, list) or not data:
         print("[calendar] unavailable; fallback to 20 weeks")
@@ -110,19 +112,16 @@ def fetch_regular_games_by_week(year: int, up_to_week: int) -> List[dict]:
     print(f"[games] aggregated finished={total_finished}")
     return all_games
 
-# --------------- POLICY: count all games for FBS teams (SoS uses FBS opps only) -----
-
+# Policy: keep any game where at least one team is FBS (records reflect public W/L)
 def keep_games_with_fbs_team(games: List[dict], fbs: Set[str]) -> List[dict]:
     kept = [g for g in games if (g["home_team"] in fbs) or (g["away_team"] in fbs)]
     print(f"[filter] games with at least one FBS team kept={len(kept)}")
     return kept
 
-# --------------- ADVANCED STATS (Layer 1) ----------------
+# ====================== ADVANCED (Layer 1) ======================
 
 def fetch_season_advanced(year: int) -> Dict[str, dict]:
-    """
-    Returns team -> {off_ppa, def_ppa, off_sr, def_sr, off_expl, def_expl}
-    """
+    """team -> {off_ppa, def_ppa, off_sr, def_sr, off_expl, def_expl}"""
     data = cfbd_get("stats/season/advanced", {"year": year})
     if not isinstance(data, list):
         print("[adv] unexpected payload")
@@ -145,17 +144,17 @@ def fetch_season_advanced(year: int) -> Dict[str, dict]:
     print(f"[adv] season advanced rows: {len(out)}")
     return out
 
-def zscore_map(values: List[float]) -> Tuple[float, float]:
+def zstats(values: List[float]) -> Tuple[float, float]:
     if not values:
         return 0.0, 1.0
-    mean = statistics.fmean(values)
+    mu = statistics.fmean(values)
     try:
-        stdev = statistics.pstdev(values)
+        sd = statistics.pstdev(values)
     except statistics.StatisticsError:
-        stdev = 1.0
-    if stdev == 0:
-        stdev = 1.0
-    return mean, stdev
+        sd = 1.0
+    if sd == 0:
+        sd = 1.0
+    return mu, sd
 
 def standardize_advanced(adv: Dict[str, dict], fbs: Set[str]) -> Dict[str, dict]:
     keys = ["off_ppa", "def_ppa", "off_sr", "def_sr", "off_expl", "def_expl"]
@@ -166,7 +165,7 @@ def standardize_advanced(adv: Dict[str, dict], fbs: Set[str]) -> Dict[str, dict]
             v = row.get(k)
             if isinstance(v, (int, float)):
                 arrays[k].append(float(v))
-    mu_sigma = {k: zscore_map(arrays[k]) for k in keys}
+    mu_sigma = {k: zstats(arrays[k]) for k in keys}
     std: Dict[str, dict] = {}
     for t in fbs:
         row = adv.get(t) or {}
@@ -174,21 +173,21 @@ def standardize_advanced(adv: Dict[str, dict], fbs: Set[str]) -> Dict[str, dict]
         for k in keys:
             mu, sd = mu_sigma[k]
             v = row.get(k)
-            if isinstance(v, (int, float)):
-                z = (float(v) - mu) / sd
-            else:
-                z = 0.0
+            z = (float(v) - mu) / sd if isinstance(v, (int, float)) else 0.0
             zrow[k] = z
         std[t] = zrow
     return std
 
-# --------------- METRICS ----------------
+# ====================== ROLLUP & SOS ======================
 
 def roll_up(games: List[dict], fbs: Set[str]) -> Dict[str, dict]:
     teams: Dict[str, dict] = {}
     def init(t: str):
         if t not in teams:
-            teams[t] = {"games": 0, "wins": 0, "losses": 0, "pf": 0, "pa": 0, "opps": set(), "results": []}
+            teams[t] = {
+                "games": 0, "wins": 0, "losses": 0, "pf": 0, "pa": 0,
+                "opps": set(), "results": []  # results: [("W"/"L", opponent)]
+            }
     for g in games:
         h, a = g["home_team"], g["away_team"]
         hp, ap = int(g["home_points"] or 0), int(g["away_points"] or 0)
@@ -199,12 +198,8 @@ def roll_up(games: List[dict], fbs: Set[str]) -> Dict[str, dict]:
             teams[h]["pf"] += hp
             teams[h]["pa"] += ap
             teams[h]["opps"].add(a)
-            if hp > ap:
-                teams[h]["wins"] += 1
-                teams[h]["results"].append(("W", a))
-            elif ap > hp:
-                teams[h]["losses"] += 1
-                teams[h]["results"].append(("L", a))
+            if hp > ap: teams[h]["wins"] += 1; teams[h]["results"].append(("W", a))
+            elif ap > hp: teams[h]["losses"] += 1; teams[h]["results"].append(("L", a))
 
         if a in fbs:
             init(a)
@@ -212,12 +207,8 @@ def roll_up(games: List[dict], fbs: Set[str]) -> Dict[str, dict]:
             teams[a]["pf"] += ap
             teams[a]["pa"] += hp
             teams[a]["opps"].add(h)
-            if ap > hp:
-                teams[a]["wins"] += 1
-                teams[a]["results"].append(("W", h))
-            elif hp > ap:
-                teams[a]["losses"] += 1
-                teams[a]["results"].append(("L", h))
+            if ap > hp: teams[a]["wins"] += 1; teams[a]["results"].append(("W", h))
+            elif hp > ap: teams[a]["losses"] += 1; teams[a]["results"].append(("L", h))
     return teams
 
 def compute_sos_fbs_only(teams: Dict[str, dict], fbs: Set[str]) -> None:
@@ -230,64 +221,79 @@ def compute_sos_fbs_only(teams: Dict[str, dict], fbs: Set[str]) -> None:
             wpcts.append(teams[o]["wins"] / teams[o]["games"])
         d["sos"] = float(statistics.mean(wpcts)) if wpcts else 0.0
 
-# ---- Pass 1 base score (efficiency + SoS + margin + results)
+# ====================== SCORING ======================
+
+# Base weights (sum=1.00)
+W_WIN = 0.52
+W_SOS = 0.20
+W_MARGIN = 0.08
+W_PPA = 0.08
+W_SR  = 0.06
+W_EX  = 0.06
+
+# Second-order tuning
+QW_TIER = { "top15": 0.07, "r16_40": 0.04, "r41_60": 0.02 }   # per win
+BL_TIER = { "r50_79": -0.04, "r80p": -0.06 }                  # per loss
+H2H_ENFORCE_DELTA = 0.08  # if two teams are within this after adjustments, enforce H2H
 
 def base_score(win_pct: float, sos: float, avg_margin: float, z: dict) -> float:
-    # Slightly more weight on results than before
     return (
-        0.40 * win_pct +
-        0.22 * sos +
-        0.12 * (avg_margin / 25.0) +
-        0.10 * (z.get("off_ppa", 0.0) - z.get("def_ppa", 0.0)) +
-        0.08 * (z.get("off_sr",  0.0) - z.get("def_sr",  0.0)) +
-        0.08 * (z.get("off_expl",0.0) - z.get("def_expl",0.0))
+        W_WIN * win_pct +
+        W_SOS * sos +
+        W_MARGIN * (avg_margin / 25.0) +
+        W_PPA * (z.get("off_ppa", 0.0) - z.get("def_ppa", 0.0)) +
+        W_SR  * (z.get("off_sr",  0.0) - z.get("def_sr",  0.0)) +
+        W_EX  * (z.get("off_expl",0.0) - z.get("def_expl",0.0))
     )
 
-# ---- Quality wins, bad losses, and head-to-head nudges
+def tier_quality_bad(r: int) -> Tuple[str | None, str | None]:
+    """Return (quality_win_tier, bad_loss_tier) for opponent rank r."""
+    qw = None
+    bl = None
+    if r <= 15: qw = "top15"
+    elif r <= 40: qw = "r16_40"
+    elif r <= 60: qw = "r41_60"
 
-def second_order_adjustments(team: str, team_row: dict, rank_map: Dict[str, int]) -> Tuple[float, dict]:
-    """
-    Compute:
-      - quality wins bonus: wins vs top40 (scaled)
-      - bad loss penalty: losses vs rank > 80 (scaled)
-      - head-to-head nudge: beat a higher-ranked team gets small bonus
-    Returns (adj_score, details_dict)
-    """
-    qwins = 0
-    badloss = 0
-    h2h = 0
-    details = {"quality_wins": 0, "bad_losses": 0, "h2h_upsets": 0}
+    if r >= 80: bl = "r80p"
+    elif r >= 50: bl = "r50_79"
 
-    for res, opp in team_row.get("results", []):
+    return qw, bl
+
+def second_order(team: str, row: dict, rank_map: Dict[str, int]) -> Tuple[float, dict]:
+    """Compute Quality-Win/Bad-Loss adjustments based on provisional ranks."""
+    q_counts = {"top15": 0, "r16_40": 0, "r41_60": 0}
+    bl_counts = {"r50_79": 0, "r80p": 0}
+
+    for res, opp in row.get("results", []):
         r = rank_map.get(opp, 999)
-        if res == "W":
-            if r <= 40:
-                qwins += 1
-                details["quality_wins"] += 1
-            # head-to-head nudge if you beat someone ranked above you
-            # actual H2H bonus applied later once we know this team's rank vs opp
-        elif res == "L":
-            if r >= 80:
-                badloss += 1
-                details["bad_losses"] += 1
+        qw_tier, bl_tier = tier_quality_bad(r)
+        if res == "W" and qw_tier:
+            q_counts[qw_tier] += 1
+        elif res == "L" and bl_tier:
+            bl_counts[bl_tier] += 1
 
-    # scale: assume 0..4 quality wins typical mid-season
-    q_bonus = 0.04 * min(qwins, 6)  # cap at 6
-    # penalties mild but real
-    bl_pen = -0.03 * min(badloss, 6)
+    q_bonus = (
+        q_counts["top15"]  * QW_TIER["top15"] +
+        q_counts["r16_40"] * QW_TIER["r16_40"] +
+        q_counts["r41_60"] * QW_TIER["r41_60"]
+    )
+    bl_pen = (
+        bl_counts["r50_79"] * BL_TIER["r50_79"] +
+        bl_counts["r80p"]   * BL_TIER["r80p"]
+    )
 
-    # For h2h, give small bonus for each opponent ranked above you at time of pass1
-    # We don't know "you vs opp" ordering here, so award if opp rank < your provisional rank
-    # We'll adapt this in a final pass.
-    # Placeholder: count upsets as wins vs opp rank <= your rank + 5
-    # Then scale small:
-    details["h2h_upsets"] = 0  # set later in final stitching
-    h2h_bonus = 0.0
-
-    return (q_bonus + bl_pen + h2h_bonus), {**details, "q_bonus": q_bonus, "badloss_pen": bl_pen, "h2h_bonus": h2h_bonus}
+    details = {
+        "quality_wins": q_counts,
+        "bad_losses": bl_counts,
+        "q_bonus": round(q_bonus, 6),
+        "badloss_pen": round(bl_pen, 6),
+        "h2h_enforced": []  # filled later
+    }
+    return q_bonus + bl_pen, details
 
 def score_pass(teams: Dict[str, dict], zadv: Dict[str, dict], rank_map: Dict[str, int] | None = None) -> List[dict]:
-    out = []
+    """Score teams; if rank_map is provided, add second-order adjustments."""
+    rows = []
     for t, d in teams.items():
         if d["games"] < 1:
             continue
@@ -297,27 +303,12 @@ def score_pass(teams: Dict[str, dict], zadv: Dict[str, dict], rank_map: Dict[str
         z = zadv.get(t, {})
 
         s = base_score(win_pct, sos, avg_margin, z)
-        comp = {
-            "win_pct": round(win_pct, 6),
-            "sos": round(sos, 6),
-            "margin_scaled": round(avg_margin / 25.0, 6),
-            "z": {
-                "off_ppa": round(z.get("off_ppa", 0.0), 4),
-                "def_ppa": round(z.get("def_ppa", 0.0), 4),
-                "off_sr":  round(z.get("off_sr", 0.0), 4),
-                "def_sr":  round(z.get("def_sr", 0.0), 4),
-                "off_expl":round(z.get("off_expl",0.0), 4),
-                "def_expl":round(z.get("def_expl",0.0), 4),
-            }
-        }
-
-        adj = 0.0
-        adj_details = {"quality_wins": 0, "bad_losses": 0, "q_bonus": 0.0, "badloss_pen": 0.0, "h2h_bonus": 0.0}
+        second = {"quality_wins": {}, "bad_losses": {}, "q_bonus": 0.0, "badloss_pen": 0.0, "h2h_enforced": []}
         if rank_map is not None:
-            adj, adj_details = second_order_adjustments(t, d, rank_map)
+            adj, second = second_order(t, d, rank_map)
             s += adj
 
-        out.append({
+        rows.append({
             "team": t,
             "wins": d["wins"],
             "losses": d["losses"],
@@ -327,27 +318,76 @@ def score_pass(teams: Dict[str, dict], zadv: Dict[str, dict], rank_map: Dict[str
             "sos": round(sos, 6),
             "avg_margin": round(avg_margin, 3),
             "score": round(s, 6),
-            "components": {**comp, "second_order": adj_details}
+            "components": {
+                "win_pct": round(win_pct, 6),
+                "sos": round(sos, 6),
+                "margin_scaled": round(avg_margin / 25.0, 6),
+                "z": {
+                    "off_ppa": round(z.get("off_ppa", 0.0), 4),
+                    "def_ppa": round(z.get("def_ppa", 0.0), 4),
+                    "off_sr":  round(z.get("off_sr", 0.0), 4),
+                    "def_sr":  round(z.get("def_sr", 0.0), 4),
+                    "off_expl":round(z.get("off_expl",0.0), 4),
+                    "def_expl":round(z.get("def_expl",0.0), 4),
+                },
+                "second_order": second
+            }
         })
-    out.sort(key=lambda r: r["score"], reverse=True)
-    for i, r in enumerate(out, start=1):
+    rows.sort(key=lambda r: r["score"], reverse=True)
+    for i, r in enumerate(rows, start=1):
         r["rank"] = i
-    return out
+    return rows
 
 def make_rank_map(rows: List[dict]) -> Dict[str, int]:
     return {r["team"]: r["rank"] for r in rows}
 
-# --------------- IO ----------------
+def enforce_head_to_head(rows: List[dict], teams: Dict[str, dict]) -> List[dict]:
+    """
+    If Team A beat Team B and their scores are within H2H_ENFORCE_DELTA,
+    force A to be ranked above B by swapping neighbors iteratively.
+    """
+    rank = make_rank_map(rows)
+    name_to_row = {r["team"]: r for r in rows}
+
+    def beat(a: str, b: str) -> bool:
+        # did a beat b at least once?
+        for res, opp in teams[a].get("results", []):
+            if res == "W" and opp == b:
+                return True
+        return False
+
+    changed = True
+    while changed:
+        changed = False
+        for i in range(len(rows) - 1):
+            A = rows[i]["team"]
+            B = rows[i+1]["team"]
+            sA = rows[i]["score"]; sB = rows[i+1]["score"]
+            if abs(sA - sB) <= H2H_ENFORCE_DELTA:
+                if beat(B, A) and not beat(A, B):
+                    # swap to put B above A
+                    rows[i], rows[i+1] = rows[i+1], rows[i]
+                    rows[i]["rank"], rows[i+1]["rank"] = i+1, i+2
+                    # annotate
+                    rows[i]["components"]["second_order"]["h2h_enforced"].append(f"{rows[i]['team']} > {rows[i+1]['team']}")
+                    changed = True
+                elif beat(A, B) and not beat(B, A):
+                    # already in correct order (A above B); annotate
+                    rows[i]["components"]["second_order"]["h2h_enforced"].append(f"{A} > {B}")
+            # else: difference is big; no enforcement
+    return rows
+
+# ====================== IO ======================
 
 def write_json(payload: dict):
     os.makedirs("docs/data", exist_ok=True)
     with open("docs/data/rankings.json", "w") as f:
         json.dump(payload, f, indent=2)
 
-# --------------- MAIN ----------------
+# ====================== MAIN ======================
 
 def main():
-    print(f"Building FBS rankings (two-pass) for {YEAR}")
+    print(f"Building FBS rankings (reweighted + tiered quality/bad + H2H) for {YEAR}")
     fbs = fetch_fbs_names(YEAR)
     cur_week = fetch_current_week(YEAR)
     games_all = fetch_regular_games_by_week(YEAR, cur_week)
@@ -369,25 +409,34 @@ def main():
     adv = fetch_season_advanced(YEAR)
     zadv = standardize_advanced(adv, fbs)
 
-    # Pass 1: base table
+    # Pass 1: base table (no second-order)
     pass1 = score_pass(teams, zadv, rank_map=None)
     rmap1 = make_rank_map(pass1)
 
-    # Pass 2: add quality wins, bad losses (and placeholder h2h small nudge via qwins)
+    # Pass 2: add quality/bad-loss adjustments using ranks from Pass 1
     pass2 = score_pass(teams, zadv, rank_map=rmap1)
+
+    # Enforce head-to-head within proximity band
+    final_rows = enforce_head_to_head(pass2, teams)
 
     out = {
         "season": YEAR,
         "last_build_utc": datetime.datetime.utcnow().isoformat(),
         "notes": {
             "weeks_included": f"1..{cur_week}",
-            "model_layers": "Win%, SoS (FBS only), Avg margin, Advanced efficiency (PPA/SR/Expl), quality wins, bad-loss penalty",
-            "weights": "Base: 0.40*Win% + 0.22*SoS + 0.12*Margin/25 + 0.10*(OffPPA-DefPPA) + 0.08*(OffSR-DefSR) + 0.08*(OffExpl-DefExpl); Second-order: +0.04*qualityWins -0.03*badLosses (caps applied)"
+            "weights_base": {
+                "win_pct": W_WIN, "sos": W_SOS, "margin_scaled": W_MARGIN,
+                "delta_ppa": W_PPA, "delta_sr": W_SR, "delta_expl": W_EX
+            },
+            "second_order": {
+                "quality_win_tiers": QW_TIER, "bad_loss_tiers": BL_TIER,
+                "h2h_enforcement_delta": H2H_ENFORCE_DELTA
+            }
         },
-        "top25": pass2[:25]
+        "top25": final_rows[:25]
     }
     write_json(out)
-    print(f"✅ Built Top 25 from {len(teams)} FBS teams • weeks=1..{cur_week}")
+    print(f"✅ Top 25 built from {len(teams)} FBS teams • weeks=1..{cur_week}")
 
 if __name__ == "__main__":
     main()
