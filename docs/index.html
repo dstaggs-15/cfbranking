@@ -1,58 +1,29 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>CFB Top 25 — In-Season Metrics Only</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CFB Top 25 Rankings</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="container">
-    <h1>CFB Top 25 — In-Season Metrics Only</h1>
-    <p class="sub">Performance • Strength of Schedule • Quality Wins • Head-to-Head nudges</p>
-    <div id="meta" class="muted"></div>
-
-    <nav class="tabs">
-      <button class="tab active" data-tab="rankings">Rankings</button>
-      <button class="tab" data-tab="about">How it works</button>
-    </nav>
+  <header>
+    <h1>🏈 College Football Top 25 Rankings</h1>
+    <p id="updated"></p>
   </header>
 
-  <main class="container">
-    <section id="panel-rankings" class="panel active">
-      <section id="bubble-grid" class="grid"></section>
-    </section>
+  <main id="rankings"></main>
 
-    <section id="panel-about" class="panel">
-      <h2>Methodology (in-season only, no preseason bias)</h2>
-      <ol>
-        <li><strong>Data</strong>: We use CollegeFootballData advanced season stats and game results for the current season only (no carryover or preseason anchors).</li>
-        <li><strong>Performance</strong>: We build an offense score (PPA, success rate, explosiveness, points per opportunity) and a defense score (same metrics, inverted where lower is better). Metrics are standardized (z-scores) and combined into a 0–100 <em>Performance</em> score.</li>
-        <li><strong>Strength of Schedule (SOS)</strong>: Rating-based SOS = the average Performance of a team’s opponents.</li>
-        <li><strong>Quality Wins</strong>: For each win, we add a scaled bonus based on the opponent’s Performance and their SOS. Beating high-quality teams matters.</li>
-        <li><strong>Head-to-Head</strong>: If Team A beat Team B and their final scores are nearly tied, we give A a small nudge so the ordering respects obvious head-to-head results without overriding large résumé gaps.</li>
-        <li><strong>Final score</strong>: <code>0.45 × Performance + 0.35 × SOS + 0.20 × QualityWins</code>. We tune these weights over time.</li>
-        <li><strong>Team colors</strong>: Pulled from CFBD team info (primary & alt) each build; if missing, we create a pleasant fallback palette.</li>
-      </ol>
-      <p class="muted small">
-        Sources: CFBD advanced stats fields (e.g., PPA, success rate, explosiveness, points per opportunity) and team info (colors) via <code>cfbd</code> client. See the SportsDataverse/cfbfastR docs for advanced stats variables and the team info color fields; both are wrappers over CollegeFootballData.com.
-      </p>
-    </section>
-  </main>
+  <section id="about">
+    <h2>How Rankings Are Calculated</h2>
+    <p>
+      This system is completely independent from the AP or Coaches Poll.
+      It evaluates <strong>all completed FBS games</strong> using only real data:
+      win percentage, average scoring margin, and opponent strength (SoS).
+      These metrics combine into a weighted composite score that updates weekly.
+    </p>
+  </section>
 
-  <!-- Modal -->
-  <div id="modal" class="modal hidden" aria-hidden="true" role="dialog">
-    <div class="modal-backdrop"></div>
-    <div class="modal-card" role="document">
-      <button id="close-modal" class="icon-btn" aria-label="Close">&times;</button>
-      <div id="modal-content"></div>
-    </div>
-  </div>
-
-  <footer class="container muted">
-    Built with CFBD data. No preseason bias. Auto-updated.
-  </footer>
-
-  <script src="app.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
