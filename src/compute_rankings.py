@@ -12,7 +12,7 @@ import requests
 
 CFBD_API_KEY = os.getenv("CFBD_API_KEY")
 
-# ✅ Fixed YEAR variable handling
+# ✅ Safe YEAR handling
 try:
     YEAR = int(os.getenv("YEAR") or datetime.datetime.now().year)
 except ValueError:
@@ -85,7 +85,7 @@ def get_sp_ratings(year):
 # Scoring function
 # -------------------------------------------------
 
-def compute_team_score(team, metrics, results, rankings):
+def compute_team_score(team, metrics, results, rankings, opp_ranks_known=False):
     wins = team["wins"]
     losses = team["losses"]
     games = wins + losses
@@ -98,16 +98,22 @@ def compute_team_score(team, metrics, results, rankings):
     off_sr = metrics.get("off_sr", 0.0)
     def_sr = metrics.get("def_sr", 0.0)
 
-    quality_wins = sum(1 for opp in results if opp["result"] == "W" and opp["opp_rank"] <= 25)
-    bad_losses = sum(1 for opp in results if opp["result"] == "L" and opp["opp_rank"] > 75)
-
-    # Stronger H2H logic
+    # Avoid opp_rank lookups before known
+    quality_wins = 0
+    bad_losses = 0
     h2h_bonus = 0
-    for opp in results:
-        if opp["result"] == "W" and opp["opp_rank"] < 30:
-            h2h_bonus += 0.02
-        if opp["result"] == "L" and opp["opp_rank"] > 70:
-            h2h_bonus -= 0.03
+
+    if opp_ranks_known:
+        for opp in results:
+            opp_rank = opp.get("opp_rank", 999)
+            if opp["result"] == "W" and opp_rank <= 25:
+                quality_wins += 1
+            if opp["result"] == "L" and opp_rank > 75:
+                bad_losses += 1
+            if opp["result"] == "W" and opp_rank < 30:
+                h2h_bonus += 0.02
+            if opp["result"] == "L" and opp_rank > 70:
+                h2h_bonus -= 0.03
 
     score = (
         0.50 * win_pct +
@@ -144,12 +150,10 @@ def build_rankings(year):
         else:
             continue
 
-        # initialize
         for t in [home, away]:
             if t not in teams:
                 teams[t] = {"wins": 0, "losses": 0, "points_for": 0, "points_against": 0, "results": []}
 
-        # record
         teams[winner]["wins"] += 1
         teams[loser]["losses"] += 1
         teams[home]["points_for"] += home_pts
@@ -160,7 +164,7 @@ def build_rankings(year):
         teams[winner]["results"].append({"opp": loser, "result": "W"})
         teams[loser]["results"].append({"opp": winner, "result": "L"})
 
-    # compute average margin and merge metrics
+    # Compute average margin and merge metrics
     for t, info in teams.items():
         games_played = info["wins"] + info["losses"]
         avg_margin = 0
@@ -170,24 +174,20 @@ def build_rankings(year):
         info.update(adv.get(t, {}))
         info.update(sp.get(t, {}))
 
-    # build provisional ranks
-    scores = {}
-    for t, info in teams.items():
-        scores[t] = compute_team_score(info, info, info["results"], scores)
-
+    # First pass: rough scores (no opp ranks yet)
+    scores = {t: compute_team_score(info, info, info["results"], {}, opp_ranks_known=False)
+              for t, info in teams.items()}
     ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
     rank_index = {t: i+1 for i, (t, _) in enumerate(ranked)}
 
-    # update results with opponent ranks
+    # Attach opp ranks
     for t, info in teams.items():
         for r in info["results"]:
             r["opp_rank"] = rank_index.get(r["opp"], 130)
 
-    # Re-score using updated ranks
-    final_scores = {}
-    for t, info in teams.items():
-        final_scores[t] = compute_team_score(info, info, info["results"], rank_index)
-
+    # Second pass: now that opp ranks exist
+    final_scores = {t: compute_team_score(info, info, info["results"], rank_index, opp_ranks_known=True)
+                    for t, info in teams.items()}
     final = sorted(final_scores.items(), key=lambda x: x[1], reverse=True)
 
     top25 = []
