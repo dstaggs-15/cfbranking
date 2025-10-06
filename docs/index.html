@@ -14,6 +14,11 @@
       --accent: #37d0b2;
       --ring: #66aaff44;
       --shadow: 0 10px 20px #00000055, inset 0 1px 0 #ffffff12;
+
+      --good: #25d59a;
+      --mid: #a9b9cd;
+      --warn: #f0a000;
+      --bad: #e06363;
     }
     * { box-sizing: border-box; }
     html, body {
@@ -90,6 +95,19 @@
     }
     .bar-label { display:flex; justify-content:space-between; font-size:12px; color:#a9b9cd; margin-top:6px; }
 
+    /* badges for advanced labels */
+    .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid #ffffff24; margin-left:8px; }
+    .b-elite { background:#103a32; color:#8ff0cb; border-color:#1d6a59; }
+    .b-above { background:#0f2f40; color:#9ee7d3; border-color:#1f5062; }
+    .b-avg   { background:#16202a; color:#cbd7e6; border-color:#2a3a4a; }
+    .b-below { background:#2b200f; color:#ffd9a1; border-color:#674f1a; }
+    .b-bad   { background:#35181b; color:#ffb9b9; border-color:#6e2e36; }
+
+    /* why section */
+    .why { grid-column: 1 / -1; }
+    .why ul { margin: 8px 0 0 18px; color:#d7e3f3; }
+    .why li { margin: 6px 0; }
+
     dialog { border:none; padding:0; background:transparent; }
     .modal {
       width: min(1000px, 94vw); max-height: 88vh; overflow:auto;
@@ -124,13 +142,13 @@
         <button id="close-explainer" class="btn" aria-label="Close explainer">Close</button>
       </div>
       <div class="modal-body">
-        <p class="notice"><strong>No polls. No preseason bias.</strong> Only this season’s games. This rewards results, schedule strength, and avoiding bad losses. Head-to-head matters when records match.</p>
+        <p class="notice"><strong>No polls. No preseason bias by default.</strong> We rank this season only. Ordering is loss buckets → in-bucket head-to-head → a BCS-style composite of résumé metrics. (If enabled, polls add a <em>small</em> nudge and never override results.)</p>
 
         <h3>1) Who’s in?</h3>
         <ul>
           <li>Only <strong>FBS</strong> programs are ranked.</li>
           <li>The <strong>record</strong> (wins–losses) shows every game an FBS team played (even if the opponent was FCS) so it matches what fans see elsewhere.</li>
-          <li>The résumé math below uses only <strong>FBS vs FBS</strong> games to fairly compare schedules.</li>
+          <li>The résumé math (strength of schedule, etc.) uses only <strong>FBS vs FBS</strong> for fairness.</li>
         </ul>
 
         <h3>2) Loss buckets come first</h3>
@@ -139,33 +157,36 @@
         <h3>3) Head-to-head inside buckets</h3>
         <p>If two teams in the same loss bucket played each other, the winner goes ahead of the loser.</p>
 
-        <h3>4) Composite score (orders ties inside buckets)</h3>
+        <h3>4) Composite (orders ties inside buckets)</h3>
         <ul>
-          <li><strong>Winning percentage (50%)</strong> — win the games you play.</li>
-          <li><strong>Strength of schedule (22%)</strong> — average FBS-opponent winning percentage. 0.50 is average; higher means tougher.</li>
-          <li><strong>Average scoring margin (10%)</strong> — points scored minus points allowed per game (capped influence so blowouts don’t dominate).</li>
-          <li><strong>Quality wins</strong> — small bonus for beating roughly Top-40 opponents.</li>
-          <li><strong>Bad losses</strong> — small penalty for losing to roughly 80+ teams.</li>
-          <li><strong>Tiny efficiency tiebreakers</strong> — two “per-play” ideas:
+          <li><strong>Winning percentage</strong> — the most important factor.</li>
+          <li><strong>SOS1 (Opponent strength)</strong> — average FBS opponent win rate; >0.50 = tougher than average.</li>
+          <li><strong>SOS2 (Opponent’s opponent strength)</strong> — how tough your opponents’ schedules were.</li>
+          <li><strong>Average scoring margin</strong> — capped so blowouts don’t dominate.</li>
+          <li><strong>Quality wins</strong> — small bonus for beating roughly Top-40 teams.</li>
+          <li><strong>Bad losses</strong> — small penalty for losing to ~80+ teams.</li>
+          <li><strong>Location adjustment</strong> — road/neutral wins get a nudge; home losses get dinged.</li>
+          <li><strong>Tiny efficiency nudge</strong> — two per-play ideas:
             <ul>
-              <li><strong>Predicted Points Added (PPA)</strong>: how much your plays change expected points. Offense PPA up is good; Defense PPA down (more negative) is good.</li>
-              <li><strong>Success Rate</strong>: how often a play achieves the down-and-distance goal. Higher on offense, lower allowed on defense is better.</li>
+              <li><strong>Offensive/Defensive Efficiency (PPA)</strong>: how much each play changes expected points. Offense up is good; defense more negative is good.</li>
+              <li><strong>Drive Consistency (Success Rate)</strong>: how often plays gain the yards needed. Higher on offense, lower allowed on defense is better.</li>
             </ul>
-            These only nudge close calls; they don’t carry the ranking.
           </li>
+          <li><strong>Conference championship</strong> — small bonus if you won one (when those games exist).</li>
+          <li><strong>Optional polls</strong> — if enabled, a tiny nudge from AP/Coaches to break ties, never decisive.</li>
         </ul>
 
         <h3>5) Quick translation</h3>
-        <p>Win a lot, against good teams, avoid bad stumbles, and outscore opponents consistently. If two teams with the same losses played each other, the winner sits on top. That’s it.</p>
+        <p>Win a lot, versus good teams, avoid bad losses, and perform steadily. If equal losses and you played head-to-head, the winner sits higher. That’s it.</p>
       </div>
     </div>
   </dialog>
 
   <script>
     // ====== CONFIG ======
-    const DATA_URL = "/cfbranking/data/rankings.json?v=4";
+    const DATA_URL = "/cfbranking/data/rankings.json?v=5";
 
-    // Team colors (extend freely)
+    // Team colors (extend freely) — leave as-is, expand whenever you want
 const TEAM_COLORS = {
   // Power Five / Prominent teams
   "Alabama": "#9E1B32",
@@ -261,6 +282,7 @@ const TEAM_COLORS = {
   // Fill in more teams here...
 };
 
+
     // ====== UTIL ======
     const $ = sel => document.querySelector(sel);
     function fmt(n, d = 2) { return (typeof n === "number" && isFinite(n)) ? n.toFixed(d) : "—"; }
@@ -269,7 +291,16 @@ const TEAM_COLORS = {
     function z(val, arr){ const s=std(arr), m=mean(arr); return s===0?0:(val-m)/s; }
     function clamp(x,min,max){ return Math.max(min, Math.min(max, x)); }
 
-    // Color helpers: make pills readable on dark theme regardless of team color
+    // Human label for z-scores (Top-25 relative)
+    function zLabel(zv){
+      if (zv >= 1.0) return ["Elite", "b-elite"];
+      if (zv >= 0.3) return ["Above average", "b-above"];
+      if (zv > -0.3) return ["Average", "b-avg"];
+      if (zv > -1.0) return ["Below average", "b-below"];
+      return ["Struggling", "b-bad"];
+    }
+
+    // Color helpers for pills
     function hexToRgb(hex){
       const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || "#122033");
       if(!m) return {r:18,g:32,b:51};
@@ -285,11 +316,10 @@ const TEAM_COLORS = {
     function pillStyles(team){
       const base = TEAM_COLORS[team] || "#3a6ea6";
       const rgb = hexToRgb(base);
-      const L = luminance(rgb);           // 0..1
-      const textColor = (L < 0.45) ? "#f8fbff" : "#0b1220"; // ensure readable text
-      const bg = `rgba(${rgb.r},${rgb.g},${rgb.b},0.33)`;   // less dark than before
+      const L = luminance(rgb);
+      const textColor = (L < 0.45) ? "#f8fbff" : "#0b1220";
+      const bg = `rgba(${rgb.r},${rgb.g},${rgb.b},0.33)`;
       const border = `rgba(${rgb.r},${rgb.g},${rgb.b},0.65)`;
-      // slight overlay if the color is very light, to avoid washed-out look
       const overlayAlpha = (L > 0.75) ? 0.08 : 0.0;
       const overlay = `inset 0 0 0 9999px rgba(0,0,0,${overlayAlpha})`;
       return { base, bg, border, textColor, overlay };
@@ -327,14 +357,12 @@ const TEAM_COLORS = {
       return map;
     }
 
-    // bar position: z in [-2,2] mapped to 0..100 (center line at 50)
+    // z in [-2,2] to 0..100 (center at 50)
     function zToPct(zv){ return (clamp(zv,-2,2) + 2) / 4 * 100; }
-
     function barHTML(zv){
       const pct = zToPct(zv);
-      const from = (pct >= 50) ? 50 : pct;    // start of fill
-      const width = (pct >= 50) ? (pct - 50) : (50 - pct);
-      const left = (pct >= 50) ? 50 : pct;
+      const width = Math.abs(pct - 50);
+      const left = Math.min(pct, 50);
       return `
         <div class="bar">
           <div class="bar-inner"></div>
@@ -351,6 +379,25 @@ const TEAM_COLORS = {
       const fbsGames = (t.fbs_wins ?? 0) + (t.fbs_losses ?? 0);
       const fbsPct = fbsGames ? (t.fbs_wins / fbsGames) : null;
 
+      const [offPpaLbl, offPpaCls] = zLabel(z.off_ppa);
+      const [defPpaLbl, defPpaCls] = zLabel(z.def_ppa);
+      const [offSrLbl,  offSrCls]  = zLabel(z.off_sr);
+      const [defSrLbl,  defSrCls]  = zLabel(z.def_sr);
+
+      const pollLine = (t.poll_ap || t.poll_coaches)
+        ? `<div class="kv"><div class="k">Poll snapshot</div><div class="v">${t.poll_ap?("AP #"+t.poll_ap):"—"} / ${t.poll_coaches?("Coaches #"+t.poll_coaches):"—"}</div></div>`
+        : "";
+
+      const confChip = t.conf_champ ? `<div class="kv"><div class="k">Conference Championship</div><div class="v">Won ✅</div></div>` : "";
+
+      const locAdj = (t.location_adj !== undefined)
+        ? `<div class="kv"><div class="k">Location Adjustment</div><div class="v">${t.location_adj>0?"+":""}${fmt(t.location_adj,3)}</div></div>`
+        : "";
+
+      const whyList = (t.why && t.why.length)
+        ? `<ul>${t.why.map(s=>`<li>${s}</li>`).join("")}</ul>`
+        : `<p style="color:#a9b9cd;margin:0">Résumé ordering, schedule, margin, and small efficiency/poll nudges (when enabled).</p>`;
+
       return `
         <li class="rank-item" data-team="${t.team}">
           <div class="rank-head">
@@ -366,11 +413,16 @@ const TEAM_COLORS = {
             <div class="grid">
               <div class="card">
                 <h4>Résumé</h4>
-                <div class="kv"><div class="k">Strength of Schedule (FBS-only)</div><div class="v">${fmt(t.sos,3)}</div></div>
+                <div class="kv"><div class="k">Strength of Schedule (SOS1)</div><div class="v">${fmt(t.sos,3)}</div></div>
+                <div class="kv"><div class="k">Opponents’ Opponent Strength (SOS2)</div><div class="v">${fmt(t.sos2 ?? 0,3)}</div></div>
                 <div class="kv"><div class="k">Average Scoring Margin</div><div class="v">${fmt(t.avg_margin,1)}</div></div>
                 <div class="kv"><div class="k">Quality Wins (≈Top-40)</div><div class="v">${t.qual_wins}</div></div>
                 <div class="kv"><div class="k">Bad Losses (≈80+)</div><div class="v">${t.bad_losses}</div></div>
+                ${locAdj}
+                ${confChip}
+                ${pollLine}
               </div>
+
               <div class="card">
                 <h4>Record</h4>
                 <div class="kv"><div class="k">Overall</div><div class="v">${t.wins}-${t.losses}</div></div>
@@ -379,22 +431,55 @@ const TEAM_COLORS = {
                 <div class="kv"><div class="k">Points For</div><div class="v">${t.points_for}</div></div>
                 <div class="kv"><div class="k">Points Against</div><div class="v">${t.points_against}</div></div>
               </div>
+
               <div class="card">
-                <h4>Advanced (how to read this)</h4>
-                <div class="kv"><div class="k">Offense: Predicted Points Added</div><div class="v">${fmt(z.off_ppa,2)}</div></div>
+                <h4>Advanced — readable</h4>
+
+                <div class="kv">
+                  <div class="k">Offensive Efficiency (impact per play)</div>
+                  <div class="v">
+                    ${fmt(z.off_ppa,2)}
+                    <span class="badge ${offPpaCls}">${offPpaLbl}</span>
+                  </div>
+                </div>
                 ${barHTML(z.off_ppa)}
-                <div class="kv"><div class="k">Defense: Predicted Points Added</div><div class="v">${fmt(z.def_ppa,2)}</div></div>
+
+                <div class="kv" style="margin-top:8px">
+                  <div class="k">Defensive Efficiency (points prevented/play)</div>
+                  <div class="v">
+                    ${fmt(z.def_ppa,2)}
+                    <span class="badge ${defPpaCls}">${defPpaLbl}</span>
+                  </div>
+                </div>
                 ${barHTML(z.def_ppa)}
-                <div class="kv"><div class="k">Offense: Success Rate</div><div class="v">${fmt(z.off_sr,2)}</div></div>
+
+                <div class="kv" style="margin-top:8px">
+                  <div class="k">Drive Consistency (offense)</div>
+                  <div class="v">
+                    ${fmt(z.off_sr,2)}
+                    <span class="badge ${offSrCls}">${offSrLbl}</span>
+                  </div>
+                </div>
                 ${barHTML(z.off_sr)}
-                <div class="kv"><div class="k">Defense: Success Rate</div><div class="v">${fmt(z.def_sr,2)}</div></div>
+
+                <div class="kv" style="margin-top:8px">
+                  <div class="k">Defensive Consistency (stops)</div>
+                  <div class="v">
+                    ${fmt(z.def_sr,2)}
+                    <span class="badge ${defSrCls}">${defSrLbl}</span>
+                  </div>
+                </div>
                 ${barHTML(z.def_sr)}
+
                 <p style="margin-top:10px;color:#a9b9cd">
-                  These numbers are <strong>z-scores</strong> compared to the Top-25 on this page (0.00 = average here).
-                  <em>Positive on offense</em> means better than average. For defense:
-                  <em>more negative PPA is better</em> (you reduce opponents’ expected points),
-                  and <em>more negative Success Rate</em> means you allow fewer successful plays.
+                  These are standardized vs the Top-25 on this page (0.00 = average here).
+                  <em>Higher is better for offense.</em> For defense, more negative PPA / lower Success Rate allowed is better.
                 </p>
+              </div>
+
+              <div class="card why">
+                <h4>Why this rank</h4>
+                ${whyList}
               </div>
             </div>
           </div>
