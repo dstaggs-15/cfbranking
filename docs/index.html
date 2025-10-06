@@ -124,7 +124,7 @@
         <button id="close-explainer" class="btn" aria-label="Close explainer">Close</button>
       </div>
       <div class="modal-body">
-        <p class="notice"><strong>No polls. No preseason bias.</strong> Only this season’s games. We reward results, schedule strength, and avoiding bad losses. Head-to-head matters when records match.</p>
+        <p class="notice"><strong>No polls. No preseason bias.</strong> Only this season’s games. This rewards results, schedule strength, and avoiding bad losses. Head-to-head matters when records match.</p>
 
         <h3>1) Who’s in?</h3>
         <ul>
@@ -166,20 +166,100 @@
     const DATA_URL = "/cfbranking/data/rankings.json?v=4";
 
     // Team colors (extend freely)
-    const TEAM_COLORS = {
-      "Alabama": "#9e0b0f","Georgia":"#cc0000","Ohio State":"#bb0000","Michigan":"#00274c",
-      "Texas":"#bf5700","Oregon":"#004f39","Florida State":"#782f40","Notre Dame":"#0c2340",
-      "Clemson":"#f56600","LSU":"#461d7c","Ole Miss":"#14213d","Miami":"#005030",
-      "Oklahoma":"#841617","Tennessee":"#ff8200","Auburn":"#0a1f44","Penn State":"#041e42",
-      "USC":"#990000","Utah":"#cc0000","Texas A&M":"#500000","Washington":"#4b2e83",
-      "Florida":"#0021a5","North Carolina":"#7BAFD4","Duke":"#012169","Kansas State":"#512888",
-      "Missouri":"#f1b82d","Oklahoma State":"#ff7f00","Texas Tech":"#cc0000","Oregon State":"#dc4405",
-      "Wisconsin":"#c5050c","Iowa":"#000000","Nebraska":"#e41c38","UCLA":"#3284bf",
-      "Arizona":"#ab0520","Arizona State":"#8e2a2a","Louisville":"#ad0000","NC State":"#cc0000",
-      "Virginia Tech":"#630031","Washington State":"#981e32","Kansas":"#0051ba","Kentucky":"#0033a0",
-      "Baylor":"#003015","TCU":"#4d1979","Mississippi State":"#660000","South Carolina":"#73000a",
-      "Arkansas":"#9d2235","Tulane":"#005837","UCF":"#ba9b37"
-    };
+const TEAM_COLORS = {
+  // Power Five / Prominent teams
+  "Alabama": "#9E1B32",
+  "Georgia": "#BA0C2F",
+  "Ohio State": "#BB0000",
+  "Michigan": "#00274C",
+  "Texas": "#BF5700",
+  "Florida State": "#782F40",
+  "Clemson": "#F56600",
+  "LSU": "#461D7C",
+  "Oklahoma": "#841617",
+  "Tennessee": "#FF8200",
+  "Auburn": "#0C2340",
+  "Penn State": "#041E42",
+  "USC": "#990000",
+  "Utah": "#CC0000",
+  "Texas A&M": "#500000",
+  "Washington": "#4B2E83",
+  "Florida": "#0021A5",
+  "North Carolina": "#7BAFD4",
+  "Notre Dame": "#0C2340",
+  
+  // Big Ten / others
+  "Penn State": "#041E42",
+  "Michigan State": "#18453B",
+  "Wisconsin": "#C5050C",
+  "Iowa": "#000000",
+  "Nebraska": "#E41C38",
+  "Minnesota": "#7A0019",
+  "Indiana": "#A6192E",
+  "Purdue": "#CEB888",
+  "Illinois": "#FFF200",
+  "Northwestern": "#4E2A84",
+  "Rutgers": "#CC0033",
+  "Maryland": "#F20000",
+  
+  // Big 12 / others
+  "Oklahoma State": "#FF7F00",
+  "Texas Tech": "#CC0000",
+  "Baylor": "#003015",
+  "TCU": "#4D1979",
+  "Kansas": "#0051BA",
+  "Kansas State": "#512888",
+  "West Virginia": "#002855",
+  "Iowa State": "#E51837",
+  "Oklahoma": "#841617",  // already listed above
+  
+  // SEC and Conference USA / Sun Belt / etc
+  "Arkansas": "#9D2235",
+  "Ole Miss": "#14213D",
+  "Mississippi State": "#660000",
+  "South Carolina": "#73000A",
+  "Arkansas State": "#CC092F",
+  "LSU": "#461D7C",
+  "Missouri": "#F1B82D",
+  "Vanderbilt": "#000000",
+  "Kentucky": "#0033A0",
+  "Missouri": "#F1B82D",
+  
+  // AAC / Group of Five
+  "Cincinnati": "#BB0000",
+  "UCF": "#BA9B37",
+  "Memphis": "#001C58",
+  "SMU": "#D50A0A",
+  "Houston": "#C9243B",
+  "Tulsa": "#003D79",
+  "East Carolina": "#421B78",
+  "Coastal Carolina": "#005851",
+  "Appalachian State": "#7F2123",
+  
+  // Sun Belt / others
+  "Georgia Southern": "#0F204B",
+  "Georgia State": "#13244F",
+  "Troy": "#C41E3A",
+  "South Alabama": "#BF0D3E",
+  "Marshall": "#00674C",
+  "Louisiana": "#C0102C",
+  "Louisiana Monroe": "#004B91",
+  "Arkansas State": "#CC092F",
+  "Texas State": "#003C71",
+  "UL Lafayette": "#A00B0B",
+  "UL Monroe": "#004C91",
+  "Coastal Carolina": "#005851",
+  
+  // Independents / special cases
+  "BYU": "#002E5D",
+  "Notre Dame": "#0C2340",
+  "Army": "#000000",
+  "UTSA": "#FFB81C",
+  "Liberty": "#76232F",
+  "UConn": "#0D4FC8",
+  
+  // Fill in more teams here...
+};
 
     // ====== UTIL ======
     const $ = sel => document.querySelector(sel);
