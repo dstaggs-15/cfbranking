@@ -104,27 +104,23 @@ def fetch_fbs_teams(year: int) -> List[Dict[str, Any]]:
         })
     return out
 
-def fetch_games(year: int) -> List[Dict[str, Any]]:
-    # GET /games?year=YYYY
+def fetch_games_all(year: int) -> List[Dict[str, Any]]:
+    # GET /games?year=YYYY -> return ALL games with final scores (no FBS filter yet)
     data = _get("games", {"year": year})
-    # Keep only FBS vs FBS with final scores present
     good = []
     for g in data:
         hp = g.get("home_points")
         ap = g.get("away_points")
         if hp is None or ap is None:
-            continue
-        # FBS vs FBS - require conference fields
-        if not g.get("home_conference") or not g.get("away_conference"):
-            continue
+            continue  # only played/finished games
         good.append({
             "week": g.get("week"),
             "date": g.get("start_date"),
             "home_team": g.get("home_team"),
-            "home_conf": g.get("home_conference"),
+            "home_conf": g.get("home_conference"),   # may be None
             "home_points": hp,
             "away_team": g.get("away_team"),
-            "away_conf": g.get("away_conference"),
+            "away_conf": g.get("away_conference"),   # may be None
             "away_points": ap,
             "neutral_site": bool(g.get("neutral_site")),
         })
@@ -169,8 +165,7 @@ def zscores(values: List[float]) -> List[float]:
     if not values:
         return []
     mean = statistics.fmean(values)
-    # population std
-    var = statistics.fmean([(v - mean) ** 2 for v in values])
+    var = statistics.fmean([(v - mean) ** 2 for v in values])  # population variance
     std = math.sqrt(var)
     if std == 0:
         return [0.0 for _ in values]
@@ -203,8 +198,6 @@ def slugify_team(name: str) -> str:
             out.append(ch)
         elif ch.isspace() or ch in "-_":
             out.append("-")
-        # else skip punctuation
-    # collapse dashes
     slug = []
     last_dash = False
     for ch in out:
@@ -230,7 +223,6 @@ def build_records(games: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
             rec[home]["wins"] += 1; rec[away]["losses"] += 1
         else:
             rec[away]["wins"] += 1; rec[home]["losses"] += 1
-    # finalize
     for t in rec.values():
         games_played = t["wins"] + t["losses"]
         t["games"] = games_played
@@ -253,6 +245,8 @@ def performance_composite(stats: Dict[str, Dict[str, float]]) -> Dict[str, float
     z-score each submetric across FBS, combine, then scale to 0..100
     """
     teams = list(stats.keys())
+    if not teams:
+        return {}
 
     off_ppa = [stats[t]["off_ppa"] for t in teams]
     off_sr = [stats[t]["off_success_rate"] for t in teams]
@@ -279,7 +273,7 @@ def performance_composite(stats: Dict[str, Dict[str, float]]) -> Dict[str, float
     def_w = WEIGHTS["defense"]
 
     perf_z: List[float] = []
-    for i, t in enumerate(teams):
+    for i, _ in enumerate(teams):
         off_score = (
             off_w["ppa"] * z["z_off_ppa"][i] +
             off_w["success_rate"] * z["z_off_sr"][i] +
@@ -361,15 +355,24 @@ def apply_h2h_nudges(rows: List[Dict[str, Any]], beaten_map: Dict[str, set]) -> 
 def main() -> None:
     print(f"Building rankings for {YEAR}")
 
-    # Fetch data
-    fbs = fetch_fbs_teams(YEAR)                # [{team, conference}]
-    games = fetch_games(YEAR)                   # FBS vs FBS with scores
+    # Fetch teams and games
+    fbs = fetch_fbs_teams(YEAR)                 # [{team, conference}]
+    fbs_names = {t["team"] for t in fbs if t.get("team")}
+    games_all = fetch_games_all(YEAR)           # all played games with final scores
+
+    # Filter to FBS vs FBS using the team list (ignore missing conference fields)
+    games = [
+        g for g in games_all
+        if (g["home_team"] in fbs_names) and (g["away_team"] in fbs_names)
+    ]
+
+    if not games:
+        print(f"Found {len(games_all)} finished games total, {len(games)} FBS-vs-FBS after filter.")
+        raise SystemExit("No FBS vs FBS games with final scores found for the season.")
+
+    # Advanced stats + records
     stats = fetch_advanced_stats(YEAR)          # team -> metrics
     records_map = fetch_records(YEAR)           # team -> (wins, losses)
-
-    # Short-circuit if no games yet
-    if not games:
-        raise SystemExit("No FBS vs FBS games with final scores found for the season.")
 
     # Build record table
     rec = build_records(games)  # team -> {wins, losses, games, win_pct}
@@ -379,13 +382,12 @@ def main() -> None:
 
     # Schedules + SOS
     schedules = build_schedules(games)
-    sos = compute_rating_sos(perf, schedules)  # team -> 0..100 approx
+    sos = compute_rating_sos(perf, schedules)  # team -> ~0..100
 
     # Quality wins
     qw = compute_quality_wins(games, perf, sos)
 
     # Assemble row per FBS team
-    # (Use FBS list to keep name+conference normalized)
     table: List[Dict[str, Any]] = []
     for row in fbs:
         team = row["team"]
@@ -438,8 +440,7 @@ def main() -> None:
             "slug": slugify_team(team),
         })
 
-    # Ranks
-    # performance_rank, sos_rank are position ranks (1=best)
+    # Ranks (1=best) for components
     def rank_by_key(rows: List[Dict[str, Any]], key: str) -> Dict[str, int]:
         sorted_rows = sorted(rows, key=lambda r: r[key], reverse=True)
         rank_map = {}
@@ -450,7 +451,7 @@ def main() -> None:
             if last_val is None or val != last_val:
                 rank_map[r["team"]] = rank
             else:
-                rank_map[r["team"]] = rank  # ties share the same displayed rank
+                rank_map[r["team"]] = rank
             last_val = val
             rank += 1
         return rank_map
