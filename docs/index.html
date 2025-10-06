@@ -1,40 +1,42 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>CFB Top 25 Rankings</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CFB Top 25 — In-Season Metrics</title>
+  <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-  <header>
-    <h1>🏈 College Football Top 25 Rankings</h1>
-    <p id="updated"></p>
+  <header class="site-header">
+    <div class="container">
+      <h1>CFB Top 25 — In-Season Metrics</h1>
+      <p class="sub">Win% • Strength of Schedule • Scoring Margin</p>
+      <p id="updated" class="updated"></p>
+      <button id="about-toggle" class="btn secondary">📘 About these rankings</button>
+      <div id="about" class="about hidden">
+        <p>This model is 100% data-driven — no polls and no preseason bias. Each team’s weekly score is:</p>
+        <pre><code>Score = 0.55 × Win%  +  0.30 × Strength of Schedule  +  0.15 × (Average Margin ÷ 25)</code></pre>
+        <ul>
+          <li><b>Win%</b>: games won / games played.</li>
+          <li><b>Average Margin</b>: (points for − points against) per game.</li>
+          <li><b>Strength of Schedule</b>: mean opponent Win% among teams already played.</li>
+        </ul>
+        <p>Data updates automatically from the CFBD API whenever the workflow runs.</p>
+      </div>
+    </div>
   </header>
 
-  <div id="about-section">
-    <button id="about-toggle">📘 About These Rankings</button>
-    <div id="about-content" class="hidden">
-      <p>
-        This model is 100% data-driven — no polls, no opinions.
-        Each team is evaluated using:
-      </p>
-      <ul>
-        <li><strong>Win Percentage</strong> – rewards consistent success.</li>
-        <li><strong>Average Scoring Margin</strong> – measures dominance in wins.</li>
-        <li><strong>Strength of Schedule (SoS)</strong> – adjusts for opponent quality.</li>
-      </ul>
-      <p>
-        These metrics combine into a composite score:
-        <br /><code>0.55 × Win% + 0.30 × SoS + 0.15 × (Margin ÷ 25)</code>
-        <br /><br />
-        Data updates automatically each week from the CFBD API.
-      </p>
+  <main class="container">
+    <div id="rankings" class="grid"></div>
+    <div id="empty" class="empty hidden">No rankings available yet. Check back after games complete.</div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      Built with CFBD data • No preseason bias • Auto-updated
     </div>
-  </div>
+  </footer>
 
-  <main id="rankings"></main>
-
-<script src="script.js"></script>
+  <script defer src="./script.js"></script>
 </body>
 </html>
