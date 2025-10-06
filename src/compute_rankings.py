@@ -3,7 +3,7 @@ import json
 import datetime
 import time
 import statistics
-from typing import Dict, List, Any, Set
+from typing import Dict, List, Set
 
 import requests
 
@@ -20,23 +20,25 @@ def cfbd_get(path: str, params: dict | None = None, tries: int = 3, backoff: flo
     headers = {"Authorization": f"Bearer {API_KEY}"}
     params = params or {}
     last_text = ""
+    code = 0
     for a in range(tries):
         r = requests.get(url, headers=headers, params=params, timeout=40)
-        if r.status_code == 200:
+        code = r.status_code
+        if code == 200:
             try:
                 return r.json()
             except Exception:
                 print("⚠️ JSON parse error; head:", r.text[:200])
                 return []
-        if r.status_code in (429, 502, 503, 504):
+        if code in (429, 502, 503, 504):
             sleep_s = backoff ** (a + 1)
-            print(f"⚠️ {r.status_code} on {path} {params} — retry in {sleep_s:.1f}s")
+            print(f"⚠️ {code} on {path} {params} — retry in {sleep_s:.1f}s")
             time.sleep(sleep_s)
             continue
         last_text = r.text
         break
     if last_text:
-        print(f"⚠️ CFBD {r.status_code} {path} {params} :: {last_text[:300]}")
+        print(f"⚠️ CFBD {code} {path} {params} :: {last_text[:300]}")
     return []
 
 # --------------- FETCH HELPERS ----------------
@@ -49,8 +51,8 @@ def fetch_fbs_names(year: int) -> Set[str]:
 
 def fetch_current_week(year: int) -> int:
     """
-    Use /calendar to find the max regular-season week with a start date already in the past.
-    Falls back to 20 if calendar not available.
+    Use /calendar to find the max regular-season week that has started.
+    Fallback to 20 if calendar not available.
     """
     data = cfbd_get("calendar", {"year": year})
     if not isinstance(data, list) or not data:
@@ -59,15 +61,13 @@ def fetch_current_week(year: int) -> int:
     now = datetime.datetime.utcnow()
     weeks = []
     for row in data:
-        if str(row.get("season")) != str(year):
+        if int(row.get("season", 0)) != int(year):
             continue
-        # API returns "season_type": "regular" (sometimes "seasonType")
         st = (row.get("season_type") or row.get("seasonType") or "").lower()
         if st != "regular":
             continue
         wk = int(row.get("week") or 0)
-        # Use first_game_start if present; else assume week is valid
-        start_str = row.get("first_game_start") or row.get("firstGameStart")
+        start_str = row.get("first_game_start") or row.get("firstGameStart") or row.get("firstGameStartTime")
         if start_str:
             try:
                 start = datetime.datetime.fromisoformat(start_str.replace("Z", "+00:00"))
@@ -82,14 +82,14 @@ def fetch_current_week(year: int) -> int:
     return cur
 
 def is_finished(g: dict) -> bool:
-    # robust finished detection (v2 sometimes omits 'completed')
-    completed = g.get("completed") is True
+    # robust finished detection
+    if g.get("completed") is True:
+        return True
     hp = g.get("home_points") if "home_points" in g else g.get("homePoints")
     ap = g.get("away_points") if "away_points" in g else g.get("awayPoints")
-    scored = (hp is not None and ap is not None)
-    return completed or scored
+    return (hp is not None and ap is not None)
 
-def normalize_game(g: dict) -> dict:
+def norm(g: dict) -> dict:
     return {
         "home_team": g.get("home_team") or g.get("homeTeam") or g.get("home"),
         "away_team": g.get("away_team") or g.get("awayTeam") or g.get("away"),
@@ -106,21 +106,25 @@ def fetch_regular_games_by_week(year: int, up_to_week: int) -> List[dict]:
         if not isinstance(data, list):
             print(f"[games] week {wk}: unexpected payload")
             continue
-        fin = [normalize_game(g) for g in data if is_finished(g)]
+        fin = [norm(g) for g in data if is_finished(g)]
         total_finished += len(fin)
         all_games.extend(fin)
         print(f"[games] week={wk} -> pulled={len(data)} finished={len(fin)}")
     print(f"[games] aggregated finished={total_finished}")
     return all_games
 
-def filter_fbs_vs_fbs(games: List[dict], fbs: Set[str]) -> List[dict]:
-    kept = [g for g in games if g["home_team"] in fbs and g["away_team"] in fbs]
-    print(f"[filter] FBS-vs-FBS kept={len(kept)}")
+# --------------- FILTERING POLICY ----------------
+# FBS teams only, but COUNT ALL THEIR GAMES (including vs non-FBS).
+# For SoS, only FBS opponents contribute.
+
+def keep_games_with_fbs_team(games: List[dict], fbs: Set[str]) -> List[dict]:
+    kept = [g for g in games if (g["home_team"] in fbs) or (g["away_team"] in fbs)]
+    print(f"[filter] games with at least one FBS team kept={len(kept)}")
     return kept
 
 # --------------- METRICS ----------------
 
-def roll_up(games: List[dict]) -> Dict[str, dict]:
+def roll_up(games: List[dict], fbs: Set[str]) -> Dict[str, dict]:
     teams: Dict[str, dict] = {}
     def init(t: str):
         if t not in teams:
@@ -128,26 +132,36 @@ def roll_up(games: List[dict]) -> Dict[str, dict]:
     for g in games:
         h, a = g["home_team"], g["away_team"]
         hp, ap = int(g["home_points"] or 0), int(g["away_points"] or 0)
-        if not h or not a: 
-            continue
-        init(h); init(a)
-        teams[h]["games"] += 1; teams[a]["games"] += 1
-        teams[h]["pf"] += hp; teams[h]["pa"] += ap
-        teams[a]["pf"] += ap; teams[a]["pa"] += hp
-        if hp > ap: teams[h]["wins"] += 1; teams[a]["losses"] += 1
-        elif ap > hp: teams[a]["wins"] += 1; teams[h]["losses"] += 1
-        teams[h]["opps"].add(a); teams[a]["opps"].add(h)
+
+        # Only track records for FBS teams
+        if h in fbs:
+            init(h)
+            teams[h]["games"] += 1
+            teams[h]["pf"] += hp
+            teams[h]["pa"] += ap
+            if hp > ap: teams[h]["wins"] += 1
+            elif ap > hp: teams[h]["losses"] += 1
+            teams[h]["opps"].add(a)  # may be non-FBS
+
+        if a in fbs:
+            init(a)
+            teams[a]["games"] += 1
+            teams[a]["pf"] += ap
+            teams[a]["pa"] += hp
+            if ap > hp: teams[a]["wins"] += 1
+            elif hp > ap: teams[a]["losses"] += 1
+            teams[a]["opps"].add(h)  # may be non-FBS
     return teams
 
-def compute_sos(teams: Dict[str, dict]) -> None:
+def compute_sos_fbs_only(teams: Dict[str, dict], fbs: Set[str]) -> None:
+    # SoS = mean opponent Win% among FBS opponents only
     for t, d in teams.items():
-        opps = list(d["opps"])
+        opps = [o for o in d["opps"] if o in fbs]  # ignore non-FBS for SoS
         wpcts = []
         for o in opps:
-            if o not in teams: 
+            if o not in teams or teams[o]["games"] == 0:
                 continue
-            g = max(1, teams[o]["games"])
-            wpcts.append(teams[o]["wins"] / g)
+            wpcts.append(teams[o]["wins"] / teams[o]["games"])
         d["sos"] = float(statistics.mean(wpcts)) if wpcts else 0.0
 
 def score_and_top25(teams: Dict[str, dict]) -> List[dict]:
@@ -185,25 +199,26 @@ def write_json(payload: dict):
 # --------------- MAIN ----------------
 
 def main():
-    print(f"Building FBS-only rankings for {YEAR}")
-
+    print(f"Building FBS rankings (count all games) for {YEAR}")
     fbs = fetch_fbs_names(YEAR)
     cur_week = fetch_current_week(YEAR)
     games_all = fetch_regular_games_by_week(YEAR, cur_week)
-    games = filter_fbs_vs_fbs(games_all, fbs)
+
+    # keep any game where at least one team is FBS (so records match public 5-0, etc.)
+    games = keep_games_with_fbs_team(games_all, fbs)
 
     if not games:
-        print("❌ No completed FBS-vs-FBS games found. Writing placeholder.")
+        print("❌ No completed games found for FBS teams. Writing placeholder.")
         write_json({
             "season": YEAR,
             "last_build_utc": datetime.datetime.utcnow().isoformat(),
             "top25": [],
-            "note": "No completed FBS vs FBS games available."
+            "note": "No completed games for FBS teams available."
         })
         return
 
-    teams = roll_up(games)
-    compute_sos(teams)
+    teams = roll_up(games, fbs)
+    compute_sos_fbs_only(teams, fbs)
     top25 = score_and_top25(teams)
 
     out = {
