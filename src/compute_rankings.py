@@ -11,7 +11,13 @@ import datetime
 import requests
 
 CFBD_API_KEY = os.getenv("CFBD_API_KEY")
-YEAR = int(os.getenv("YEAR", datetime.datetime.now().year))
+
+# ✅ Fixed YEAR variable handling
+try:
+    YEAR = int(os.getenv("YEAR") or datetime.datetime.now().year)
+except ValueError:
+    YEAR = datetime.datetime.now().year
+
 HEADERS = {"Authorization": f"Bearer {CFBD_API_KEY}"}
 
 DATA_DIR = "docs/data"
@@ -169,10 +175,7 @@ def build_rankings(year):
     for t, info in teams.items():
         scores[t] = compute_team_score(info, info, info["results"], scores)
 
-    # sort by score
     ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-
-    # Assign rank index to fix H2H recalibration
     rank_index = {t: i+1 for i, (t, _) in enumerate(ranked)}
 
     # update results with opponent ranks
