@@ -1,0 +1,36 @@
+:root {
+  --bg: #0f1115;
+  --card: #151923;
+  --text: #e7eaf0;
+  --muted: #9aa3b2;
+  --accent: #4da3ff;
+  --row: #1b2030;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+}
+header { padding: 24px; text-align: center; }
+h1 { margin: 0 0 6px; font-weight: 800; letter-spacing: 0.5px; }
+.sub { margin: 2px 0 12px; color: var(--muted); }
+#meta { color: var(--muted); font-size: 14px; }
+
+main { padding: 16px; max-width: 960px; margin: 0 auto; }
+table {
+  width: 100%; border-collapse: collapse; background: var(--card);
+  border-radius: 12px; overflow: hidden;
+}
+thead tr { background: #111626; }
+th, td { padding: 12px 10px; text-align: left; }
+tbody tr:nth-child(odd) { background: var(--row); }
+th { font-weight: 700; color: var(--accent); }
+td.score { font-variant-numeric: tabular-nums; }
+.team {
+  display: flex; align-items: center; gap: 10px; font-weight: 600;
+}
+.team img {
+  width: 30px; height: 30px; object-fit: contain; border-radius: 4px;
+  background: #0f0f12;
+}
+footer { text-align: center; color: var(--muted); padding: 24px; }
