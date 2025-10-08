@@ -18,15 +18,15 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     env:
-      # ---- CONFIGURE THESE ----
-      SOURCE_JSON: cfbranking/docs/data/rankings.json   # <- your provided path
+      # ---- PATHS (ranking repo source → pickem repo dest) ----
+      SOURCE_JSON: docs/data/rankings.json        # <-- FIXED: lives at repo root/docs/data/rankings.json
       PICKEM_OWNER: dstaggs-15
       PICKEM_REPO: cfb-pickem-model
-      TARGET_PATH: docs/data/cfbrank.json               # <- where the pickem site will read it
-      # --------------------------
+      TARGET_PATH: docs/data/cfbrank.json         # where the pickem site reads it
+      # --------------------------------------------------------
 
     steps:
-      - name: Checkout ranking repo
+      - name: Checkout ranking repo (this repo)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -35,21 +35,20 @@ jobs:
         run: |
           if [ ! -f "$SOURCE_JSON" ]; then
             echo "ERROR: $SOURCE_JSON not found."
-            ls -la cfbranking || true
-            ls -la cfbranking/docs || true
-            ls -la cfbranking/docs/data || true
+            ls -la docs || true
+            ls -la docs/data || true
             exit 1
           fi
           echo "Found $SOURCE_JSON"
 
       - name: Build cfbrank.json (Top-25 → ranks array + teams map)
         run: |
-          # Convert your full rankings.json to a compact cfbrank.json:
+          # Emits a compact file the pickem frontend understands:
           # {
           #   "season": <int>,
           #   "last_build_utc": "<utc>",
-          #   "ranks": [ {"team":"Alabama","rank":7}, ... ],
-          #   "teams": { "Alabama":7, "Missouri":19, ... }
+          #   "ranks": [ {"team":"Indiana","rank":1}, ... ],
+          #   "teams": { "Indiana":1, ... }
           # }
           jq '{
                 season: .season,
@@ -58,16 +57,17 @@ jobs:
                 teams: (.top25 | map({key: .team, value: .rank}) | from_entries)
               }' "$SOURCE_JSON" > cfbrank.json
 
-          echo "Built cfbrank.json:"
-          head -n 20 cfbrank.json || true
+          echo "Built cfbrank.json (first lines):"
+          head -n 30 cfbrank.json || true
 
       - name: Checkout pickem repo (target)
         uses: actions/checkout@v4
         with:
           repository: ${{ env.PICKEM_OWNER }}/${{ env.PICKEM_REPO }}
-          token: ${{ secrets.PICKEM_PUSH_TOKEN }}   # Fine-grained PAT with Contents: Read/Write on pickem repo
+          token: ${{ secrets.PICKEM_PUSH_TOKEN }}  # Fine-grained PAT with Contents: Read/Write on pickem repo
           ref: ${{ github.event.inputs.target_branch || 'main' }}
           path: pickem
+          fetch-depth: 0
 
       - name: Copy artifact into pickem repo
         run: |
