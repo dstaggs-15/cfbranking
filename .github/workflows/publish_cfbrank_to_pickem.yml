@@ -10,7 +10,6 @@ on:
   push:
     branches:
       - main
-      # add other branches if you want auto-publish on them
 
 permissions:
   contents: read
@@ -19,46 +18,62 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     env:
+      # ---- CONFIGURE THESE ----
+      SOURCE_JSON: cfbranking/docs/data/rankings.json   # <- your provided path
       PICKEM_OWNER: dstaggs-15
       PICKEM_REPO: cfb-pickem-model
-      TARGET_PATH: docs/data/cfbrank.json
-      SOURCE_JSON: out/cfbrank.json   # <-- adjust to wherever your ranker writes the file
+      TARGET_PATH: docs/data/cfbrank.json               # <- where the pickem site will read it
+      # --------------------------
+
     steps:
       - name: Checkout ranking repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # If you need Python/Node to generate the JSON, do it here
-      # - name: Setup Python
-      #   uses: actions/setup-python@v5
-      #   with:
-      #     python-version: "3.11"
-      # - name: Build cfbrank.json
-      #   run: |
-      #     python scripts/build_cfbrank.py --out "$SOURCE_JSON"
-
-      - name: Verify rank JSON exists
+      - name: Verify source rankings.json exists
         run: |
           if [ ! -f "$SOURCE_JSON" ]; then
             echo "ERROR: $SOURCE_JSON not found."
+            ls -la cfbranking || true
+            ls -la cfbranking/docs || true
+            ls -la cfbranking/docs/data || true
             exit 1
           fi
           echo "Found $SOURCE_JSON"
 
-      - name: Checkout pickem repo
+      - name: Build cfbrank.json (Top-25 → ranks array + teams map)
+        run: |
+          # Convert your full rankings.json to a compact cfbrank.json:
+          # {
+          #   "season": <int>,
+          #   "last_build_utc": "<utc>",
+          #   "ranks": [ {"team":"Alabama","rank":7}, ... ],
+          #   "teams": { "Alabama":7, "Missouri":19, ... }
+          # }
+          jq '{
+                season: .season,
+                last_build_utc: .last_build_utc,
+                ranks: (.top25 | map({team: .team, rank: .rank})),
+                teams: (.top25 | map({key: .team, value: .rank}) | from_entries)
+              }' "$SOURCE_JSON" > cfbrank.json
+
+          echo "Built cfbrank.json:"
+          head -n 20 cfbrank.json || true
+
+      - name: Checkout pickem repo (target)
         uses: actions/checkout@v4
         with:
           repository: ${{ env.PICKEM_OWNER }}/${{ env.PICKEM_REPO }}
-          token: ${{ secrets.PICKEM_PUSH_TOKEN }}
+          token: ${{ secrets.PICKEM_PUSH_TOKEN }}   # Fine-grained PAT with Contents: Read/Write on pickem repo
           ref: ${{ github.event.inputs.target_branch || 'main' }}
           path: pickem
 
-      - name: Copy JSON into pickem repo
+      - name: Copy artifact into pickem repo
         run: |
           mkdir -p "pickem/$(dirname "$TARGET_PATH")"
-          cp "$SOURCE_JSON" "pickem/$TARGET_PATH"
-          echo "Copied $SOURCE_JSON -> pickem/$TARGET_PATH"
+          cp cfbrank.json "pickem/$TARGET_PATH"
+          echo "Copied cfbrank.json -> pickem/$TARGET_PATH"
           ls -l "pickem/$(dirname "$TARGET_PATH")"
 
       - name: Commit & push if changed
@@ -66,11 +81,13 @@ jobs:
           cd pickem
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
           git add "$TARGET_PATH" || true
           if git diff --cached --quiet; then
-            echo "No changes to commit."
+            echo "No changes to commit. Exiting."
             exit 0
           fi
+
           MSG="chore(rank): update cfbrank.json $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           git commit -m "$MSG"
           git push origin HEAD:${{ github.event.inputs.target_branch || 'main' }}
