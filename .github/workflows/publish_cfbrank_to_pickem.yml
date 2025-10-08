@@ -1,0 +1,76 @@
+name: Publish CFB Rank JSON to Pickem
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: "Target branch of pickem repo (default: main)"
+        required: false
+        default: "main"
+  push:
+    branches:
+      - main
+      # add other branches if you want auto-publish on them
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      PICKEM_OWNER: dstaggs-15
+      PICKEM_REPO: cfb-pickem-model
+      TARGET_PATH: docs/data/cfbrank.json
+      SOURCE_JSON: out/cfbrank.json   # <-- adjust to wherever your ranker writes the file
+    steps:
+      - name: Checkout ranking repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # If you need Python/Node to generate the JSON, do it here
+      # - name: Setup Python
+      #   uses: actions/setup-python@v5
+      #   with:
+      #     python-version: "3.11"
+      # - name: Build cfbrank.json
+      #   run: |
+      #     python scripts/build_cfbrank.py --out "$SOURCE_JSON"
+
+      - name: Verify rank JSON exists
+        run: |
+          if [ ! -f "$SOURCE_JSON" ]; then
+            echo "ERROR: $SOURCE_JSON not found."
+            exit 1
+          fi
+          echo "Found $SOURCE_JSON"
+
+      - name: Checkout pickem repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.PICKEM_OWNER }}/${{ env.PICKEM_REPO }}
+          token: ${{ secrets.PICKEM_PUSH_TOKEN }}
+          ref: ${{ github.event.inputs.target_branch || 'main' }}
+          path: pickem
+
+      - name: Copy JSON into pickem repo
+        run: |
+          mkdir -p "pickem/$(dirname "$TARGET_PATH")"
+          cp "$SOURCE_JSON" "pickem/$TARGET_PATH"
+          echo "Copied $SOURCE_JSON -> pickem/$TARGET_PATH"
+          ls -l "pickem/$(dirname "$TARGET_PATH")"
+
+      - name: Commit & push if changed
+        run: |
+          cd pickem
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "$TARGET_PATH" || true
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          MSG="chore(rank): update cfbrank.json $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          git commit -m "$MSG"
+          git push origin HEAD:${{ github.event.inputs.target_branch || 'main' }}
