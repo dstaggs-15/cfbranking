@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       target_branch:
-        description: "Target branch of pickem repo (default: main)"
+        description: "Target branch of pickem repo"
         required: false
         default: "main"
   push:
@@ -13,17 +13,17 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     env:
-      # ---- PATHS (ranking repo source → pickem repo dest) ----
-      SOURCE_JSON: docs/data/rankings.json        # <-- FIXED: lives at repo root/docs/data/rankings.json
+      SOURCE_JSON: docs/data/rankings.json
       PICKEM_OWNER: dstaggs-15
       PICKEM_REPO: cfb-pickem-model
-      TARGET_PATH: docs/data/cfbrank.json         # where the pickem site reads it
-      # --------------------------------------------------------
+      TARGET_PATH: docs/data/cfbrank.json
+      TARGET_BRANCH: ${{ github.event.inputs.target_branch || 'main' }}
 
     steps:
       - name: Checkout ranking repo (this repo)
@@ -41,31 +41,23 @@ jobs:
           fi
           echo "Found $SOURCE_JSON"
 
-      - name: Build cfbrank.json (Top-25 → ranks array + teams map)
+      - name: Build cfbrank.json (Top-25 → compact payload)
         run: |
-          # Emits a compact file the pickem frontend understands:
-          # {
-          #   "season": <int>,
-          #   "last_build_utc": "<utc>",
-          #   "ranks": [ {"team":"Indiana","rank":1}, ... ],
-          #   "teams": { "Indiana":1, ... }
-          # }
           jq '{
                 season: .season,
                 last_build_utc: .last_build_utc,
                 ranks: (.top25 | map({team: .team, rank: .rank})),
                 teams: (.top25 | map({key: .team, value: .rank}) | from_entries)
               }' "$SOURCE_JSON" > cfbrank.json
-
-          echo "Built cfbrank.json (first lines):"
+          echo "Built cfbrank.json:"
           head -n 30 cfbrank.json || true
 
       - name: Checkout pickem repo (target)
         uses: actions/checkout@v4
         with:
           repository: ${{ env.PICKEM_OWNER }}/${{ env.PICKEM_REPO }}
-          token: ${{ secrets.PICKEM_PUSH_TOKEN }}  # Fine-grained PAT with Contents: Read/Write on pickem repo
-          ref: ${{ github.event.inputs.target_branch || 'main' }}
+          token: ${{ secrets.PICKEM_PUSH_TOKEN }}   # PAT with Contents: Read/Write on pickem repo
+          ref: ${{ env.TARGET_BRANCH }}
           path: pickem
           fetch-depth: 0
 
@@ -76,18 +68,56 @@ jobs:
           echo "Copied cfbrank.json -> pickem/$TARGET_PATH"
           ls -l "pickem/$(dirname "$TARGET_PATH")"
 
-      - name: Commit & push if changed
+      - name: Commit changes (if any)
+        id: commit
         run: |
           cd pickem
-          git config user.name "github-actions[bot]"
+          git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
           git add "$TARGET_PATH" || true
           if git diff --cached --quiet; then
-            echo "No changes to commit. Exiting."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No changes to commit."
             exit 0
           fi
-
           MSG="chore(rank): update cfbrank.json $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           git commit -m "$MSG"
-          git push origin HEAD:${{ github.event.inputs.target_branch || 'main' }}
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Configure remote to use PAT
+        if: steps.commit.outputs.changed == 'true'
+        run: |
+          cd pickem
+          # Force the remote to use the PAT so push doesn't use default token
+          git remote set-url origin "https://x-access-token:${{ secrets.PICKEM_PUSH_TOKEN }}@github.com/${{ env.PICKEM_OWNER }}/${{ env.PICKEM_REPO }}.git"
+          git config --get remote.origin.url
+
+      - name: Push to main (try direct)
+        if: steps.commit.outputs.changed == 'true'
+        id: push_direct
+        continue-on-error: true
+        run: |
+          cd pickem
+          git push origin HEAD:${{ env.TARGET_BRANCH }}
+
+      - name: Create branch and PR (fallback when push blocked)
+        if: steps.commit.outputs.changed == 'true' && steps.push_direct.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.PICKEM_PUSH_TOKEN }}
+        run: |
+          set -e
+          BR="rank-sync-${{ github.run_id }}"
+          cd pickem
+          git checkout -b "$BR"
+          git push origin "$BR"
+
+          # Open PR via API (title/body include timestamp)
+          TITLE="chore(rank): update cfbrank.json"
+          BODY="Auto-generated cfbrank.json update from ranking repo on $(date -u +'%Y-%m-%dT%H:%M:%SZ')."
+          API="https://api.github.com/repos/${{ env.PICKEM_OWNER }}/${{ env.PICKEM_REPO }}/pulls"
+          DATA=$(jq -n --arg t "$TITLE" --arg head "$BR" --arg base "${{ env.TARGET_BRANCH }}" --arg b "$BODY" \
+            '{title:$t, head:$head, base:$base, body:$b}')
+          curl -sS -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            -d "$DATA" "$API" \
+            | tee pr_response.json
+          echo "PR created (if permissible)."
