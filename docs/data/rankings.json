@@ -1,6 +1,6 @@
 {
   "season": 2025,
-  "last_build_utc": "2025-12-21T06:46:48.048262",
+  "last_build_utc": "2025-12-28T06:47:35.324252",
   "notes": {
     "ordering": "Composite (SOS-first) > soft H2H if within epsilon (no hard loss buckets).",
     "weights": {
@@ -163,10 +163,10 @@
       "conf_champ": false,
       "poll_ap": 12,
       "poll_coaches": 13,
-      "off_ppa": 0.21334264291538513,
-      "def_ppa": 0.05040614920162361,
-      "off_sr": 0.45146726862302483,
-      "def_sr": 0.38,
+      "off_ppa": 0.22040866155284525,
+      "def_ppa": 0.059732175050610736,
+      "off_sr": 0.45951629863301785,
+      "def_sr": 0.3852013057671382,
       "why": [
         "Record strength: 84.6% win rate.",
         "Schedule strength: SOS1 0.558 (opponents), SOS2 0.515 (opponents\u2019 opponents).",
@@ -488,7 +488,7 @@
     {
       "rank": 16,
       "team": "North Texas",
-      "score": 0.6326,
+      "score": 0.6322,
       "games": 13,
       "wins": 11,
       "losses": 2,
@@ -503,10 +503,10 @@
       "conf_champ": false,
       "poll_ap": 23,
       "poll_coaches": 20,
-      "off_ppa": 0.368712899884362,
-      "def_ppa": 0.15471324498299624,
-      "off_sr": 0.5207877461706784,
-      "def_sr": 0.4200426439232409,
+      "off_ppa": 0.3514403512690222,
+      "def_ppa": 0.16008676370779287,
+      "off_sr": 0.5143139190523198,
+      "def_sr": 0.42058823529411765,
       "why": [
         "Record strength: 84.6% win rate.",
         "Schedule strength: SOS1 0.482 (opponents), SOS2 0.517 (opponents\u2019 opponents).",
@@ -704,7 +704,7 @@
     {
       "rank": 23,
       "team": "Virginia",
-      "score": 0.5891,
+      "score": 0.589,
       "games": 13,
       "wins": 10,
       "losses": 3,
@@ -719,10 +719,10 @@
       "conf_champ": false,
       "poll_ap": 20,
       "poll_coaches": 21,
-      "off_ppa": 0.18661881121897544,
-      "def_ppa": 0.07320956941392404,
-      "off_sr": 0.42208462332301344,
-      "def_sr": 0.3756038647342995,
+      "off_ppa": 0.17247278643328462,
+      "def_ppa": 0.06366002033610989,
+      "off_sr": 0.4131679389312977,
+      "def_sr": 0.3694915254237288,
       "why": [
         "Record strength: 76.9% win rate.",
         "Schedule strength: SOS1 0.455 (opponents), SOS2 0.532 (opponents\u2019 opponents).",
