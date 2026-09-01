@@ -254,14 +254,30 @@ def detect_conf_champs(postseason_games, fbs_set):
     return champs
 
 def compute_sos(teams):
-    # SOS1: avg opponent FBS win%; SOS2: avg of opponents' SOS1
-    fbs_wpct = {}
-    for t, d in teams.items():
-        g = d["fbs_wins"] + d["fbs_losses"]
-        fbs_wpct[t] = (d["fbs_wins"]/g) if g>0 else 0.5
+    # SOS1: avg opponent FBS win% (excluding games played against team t)
     for t, d in teams.items():
         opps = [o for o in d["fbs_opps"] if o in teams]
-        d["sos1"] = sum(fbs_wpct[o] for o in opps)/len(opps) if opps else 0.5
+        if not opps:
+            d["sos1"] = 0.5
+            continue
+            
+        opp_win_pcts = []
+        for o in opps:
+            o_data = teams[o]
+            # Exclude the result of 'o' playing against 't'
+            games_vs_t = [res for res, opp_name in o_data["results_fbs"] if opp_name == t]
+            wins_vs_t = games_vs_t.count("W")
+            losses_vs_t = games_vs_t.count("L")
+            
+            adj_wins = o_data["fbs_wins"] - wins_vs_t
+            adj_losses = o_data["fbs_losses"] - losses_vs_t
+            adj_g = adj_wins + adj_losses
+            
+            opp_win_pcts.append((adj_wins / adj_g) if adj_g > 0 else 0.5)
+            
+        d["sos1"] = sum(opp_win_pcts) / len(opp_win_pcts)
+
+    # SOS2: avg of opponents' SOS1
     for t, d in teams.items():
         opps = [o for o in d["fbs_opps"] if o in teams]
         d["sos2"] = sum(teams[o]["sos1"] for o in opps)/len(opps) if opps else 0.5
@@ -361,11 +377,11 @@ def build_rankings(year: int):
     reg = get_regular_games(year)
     post = get_postseason_games(year)
     if not fbs_set or not reg:
-        return {"season": year, "last_build_utc": datetime.datetime.utcnow().isoformat(), "top25": []}
+        return {"season": year, "last_build_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(), "top25": []}
 
     teams = rollup_regular(reg, fbs_set)
     if not teams:
-        return {"season": year, "last_build_utc": datetime.datetime.utcnow().isoformat(), "top25": []}
+        return {"season": year, "last_build_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(), "top25": []}
 
     compute_sos(teams)
     seed_rank = provisional_seed(teams)
@@ -408,15 +424,18 @@ def build_rankings(year: int):
     # PRIMARY ORDER: composite score (desc)
     rows.sort(key=lambda r: (-r["score"], -r["fbs_wins"], r["losses"], r["team"]))
 
-    # SOFT H2H tiebreak if basically tied
+    # SOFT H2H tiebreak if basically tied (Max iterations added to prevent infinite loop)
     results_map = defaultdict(dict)
     for t, d in teams.items():
         for res, opp in d["results_fbs"]:
             results_map[t][opp] = res
 
     changed = True
-    while changed:
+    max_iters = 10
+    iters = 0
+    while changed and iters < max_iters:
         changed = False
+        iters += 1
         for i in range(len(rows)-1):
             A, B = rows[i], rows[i+1]
             diff = abs(A["score"] - B["score"])
@@ -446,7 +465,7 @@ def build_rankings(year: int):
 
     return {
         "season": year,
-        "last_build_utc": datetime.datetime.utcnow().isoformat(),
+        "last_build_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "notes": {
             "ordering": "Composite (SOS-first) > soft H2H if within epsilon (no hard loss buckets).",
             "weights": {
