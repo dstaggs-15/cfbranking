@@ -42,10 +42,14 @@ jobs:
         run: |
           test -f docs/data/rankings.json || (echo "rankings.json not found" && exit 1)
 
+      - name: Archive rankings snapshot
+        run: |
+          python src/archive_rankings.py
+
       - name: Commit JSON
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/data/rankings.json
-          git commit -m "Auto-update rankings [skip ci]" || echo "No changes"
+          git add docs/data/rankings.json docs/data/historicals
+          git commit -m "Auto-update rankings and history [skip ci]" || echo "No changes"
           git push
