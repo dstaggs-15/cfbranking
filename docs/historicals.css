@@ -1,0 +1,360 @@
+.history-nav-link {
+  text-decoration: none;
+}
+
+.history-wrap {
+  display: grid;
+  gap: 24px;
+}
+
+.history-controls {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 14px;
+  padding: 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.history-controls label,
+.snapshot-picker {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.history-controls select,
+.history-controls input,
+.snapshot-picker select {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 11px;
+  color: var(--text);
+  background: var(--card-inner);
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  font: 500 12px "Roboto Mono", monospace;
+}
+
+.team-search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.history-action {
+  padding: 0 14px;
+  color: var(--text);
+  background: var(--accent);
+  border: 0;
+  border-radius: 9px;
+  cursor: pointer;
+  font: 600 12px "Oswald", sans-serif;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.history-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.history-stat,
+.history-panel,
+.chart-card,
+.analytics-card,
+.movement-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.history-stat {
+  padding: 15px;
+}
+
+.history-stat span {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--muted-dim);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.history-stat strong {
+  display: block;
+  color: var(--text);
+  font: 600 16px "Roboto Mono", monospace;
+}
+
+.history-panel {
+  padding: 16px;
+}
+
+.history-heading {
+  margin-bottom: 16px;
+}
+
+.team-kpis {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 9px;
+  margin-bottom: 12px;
+}
+
+.team-kpi {
+  padding: 12px;
+  background: var(--card-inner);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.team-kpi span {
+  display: block;
+  color: var(--muted-dim);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.team-kpi strong {
+  display: block;
+  margin-top: 5px;
+  font: 600 15px "Roboto Mono", monospace;
+}
+
+.chart-card {
+  margin-top: 10px;
+  padding: 14px;
+  background: var(--card-inner);
+}
+
+.chart-title-row h3 {
+  margin: 0;
+  font-size: 15px;
+  text-transform: uppercase;
+}
+
+.chart-title-row p {
+  margin: 4px 0 0;
+  color: var(--muted-dim);
+  font-size: 10px;
+}
+
+.history-chart {
+  min-height: 260px;
+  margin-top: 8px;
+  overflow-x: auto;
+}
+
+.history-chart svg {
+  display: block;
+  min-width: 620px;
+  width: 100%;
+  height: 250px;
+}
+
+.chart-grid {
+  stroke: rgba(255,255,255,.08);
+  stroke-width: 1;
+}
+
+.chart-axis-label {
+  fill: #777780;
+  font: 9px "Roboto Mono", monospace;
+}
+
+.chart-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+}
+
+.chart-point {
+  fill: var(--text);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.chart-nr-point {
+  fill: #65656d;
+  stroke: #09090b;
+  stroke-width: 2;
+}
+
+.movement-grid,
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.movement-card,
+.analytics-card {
+  padding: 14px;
+  background: var(--card-inner);
+}
+
+.movement-card h3,
+.analytics-card h3 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.movement-list,
+.analytics-list {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.movement-list li,
+.analytics-list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255,255,255,.045);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.movement-list li:last-child,
+.analytics-list li:last-child {
+  border-bottom: 0;
+}
+
+.movement-value,
+.analytics-value {
+  color: var(--text);
+  font: 600 11px "Roboto Mono", monospace;
+  white-space: nowrap;
+}
+
+.trend-up { color: var(--green); }
+.trend-down { color: #fca5a5; }
+.trend-flat { color: var(--muted); }
+
+.history-table-wrap {
+  margin-top: 12px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.history-table {
+  width: 100%;
+  min-width: 780px;
+  border-collapse: collapse;
+  background: var(--card-inner);
+}
+
+.history-table th,
+.history-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  font-size: 11px;
+}
+
+.history-table th {
+  color: var(--muted-dim);
+  font-family: "Oswald", sans-serif;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.history-table td {
+  color: var(--muted);
+  font-family: "Roboto Mono", monospace;
+}
+
+.history-table td strong {
+  color: var(--text);
+}
+
+.snapshot-picker {
+  min-width: 220px;
+}
+
+.snapshot-ranking-row {
+  cursor: default;
+}
+
+.snapshot-team {
+  min-width: 0;
+  font-family: "Oswald", sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.snapshot-sub {
+  color: var(--muted-dim);
+  font: 10px "Roboto Mono", monospace;
+}
+
+.empty-history {
+  padding: 18px;
+  color: var(--muted);
+  text-align: center;
+  border: 1px dashed var(--line-strong);
+  border-radius: 10px;
+}
+
+@media (max-width: 720px) {
+  .history-controls,
+  .history-summary,
+  .movement-grid,
+  .analytics-grid,
+  .team-kpis {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .team-search-label {
+    grid-column: 1 / -1;
+  }
+
+  .history-heading {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .snapshot-picker {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .history-controls,
+  .history-summary,
+  .team-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .team-search-row {
+    grid-template-columns: 1fr;
+  }
+
+  .history-heading {
+    display: grid;
+  }
+
+  .movement-grid,
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+}
