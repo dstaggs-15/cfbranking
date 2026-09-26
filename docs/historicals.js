@@ -51,8 +51,12 @@ function formatDate(value) {
   return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }
 
+function periodLabel(snapshot) {
+  return snapshot.week ? `Week ${snapshot.week}` : `Snapshot ${snapshot.snapshot_number || "?"}`;
+}
+
 function snapshotLabel(snapshot) {
-  return `Snapshot ${snapshot.snapshot_number || "?"} · ${formatDate(snapshot.captured_at)}`;
+  return `${periodLabel(snapshot)} · ${formatDate(snapshot.captured_at)}`;
 }
 
 async function json(url) {
@@ -111,7 +115,7 @@ function renderMeta() {
   const latest = state.snapshots[state.snapshots.length - 1];
   historyMeta.innerHTML = latest ? `
     <span class="meta-chip">Season <strong>${esc(state.season)}</strong></span>
-    <span class="meta-chip">Latest snapshot <strong>${esc(formatDate(latest.captured_at))}</strong></span>
+    <span class="meta-chip">Latest <strong>${esc(periodLabel(latest))} · ${esc(formatDate(latest.captured_at))}</strong></span>
     <span class="meta-chip">Archive <strong>${esc(state.snapshots.length)} snapshots</strong></span>
   ` : "";
 }
@@ -298,7 +302,7 @@ function svgChart(records, field, rankMode = false) {
       }).join("")}
       <path class="chart-line" d="${path}"></path>
       ${points.map(p => `<circle class="${p[3] ? "chart-nr-point" : "chart-point"}" cx="${p[0]}" cy="${p[1]}" r="4"></circle>`).join("")}
-      ${records.map((record, i) => `<text class="chart-axis-label" text-anchor="middle" x="${x(i)}" y="${height - 12}">S${record.snapshot.snapshot_number || i + 1}</text>`).join("")}
+      ${records.map((record, i) => `<text class="chart-axis-label" text-anchor="middle" x="${x(i)}" y="${height - 12}">${esc(record.snapshot.week ? "W" + record.snapshot.week : "S" + (record.snapshot.snapshot_number || i + 1))}</text>`).join("")}
     </svg>
   `;
 }
@@ -346,7 +350,7 @@ function renderTeam(teamName) {
   teamHistoryBody.innerHTML = records.map(record => {
     const team = record.team;
     return `<tr>
-      <td><strong>S${esc(record.snapshot.snapshot_number || "?")}</strong></td>
+      <td><strong>${esc(periodLabel(record.snapshot))}</strong></td>
       <td>${esc(formatDate(record.snapshot.captured_at))}</td>
       <td>${team ? "#" + esc(team.rank) : "NR"}</td>
       <td>${team ? esc(number(team.score, 3)) : "—"}</td>
