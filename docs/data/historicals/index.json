@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-04T12:23:38.374887Z",
+  "generated_at": "2026-10-11T12:52:30.052355Z",
   "snapshots": [
     {
       "id": "2026-09-13T115431Z",
@@ -45,8 +45,19 @@
       "file": "historicals/2026/2026-10-04T122338Z.json",
       "team_count": 25,
       "top_team": "Alabama",
-      "snapshot_number": 4,
-      "week": 5
+      "week": 5,
+      "snapshot_number": 4
+    },
+    {
+      "id": "2026-10-11T125229Z",
+      "season": 2026,
+      "captured_at": "2026-10-11T12:52:29.973000Z",
+      "date": "2026-10-11",
+      "file": "historicals/2026/2026-10-11T125229Z.json",
+      "team_count": 25,
+      "top_team": "Miami",
+      "snapshot_number": 5,
+      "week": 6
     }
   ]
 }
