@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-11T12:52:30.052355Z",
+  "generated_at": "2026-10-18T11:07:53.728305Z",
   "snapshots": [
     {
       "id": "2026-09-13T115431Z",
@@ -56,8 +56,19 @@
       "file": "historicals/2026/2026-10-11T125229Z.json",
       "team_count": 25,
       "top_team": "Miami",
-      "snapshot_number": 5,
-      "week": 6
+      "week": 6,
+      "snapshot_number": 5
+    },
+    {
+      "id": "2026-10-18T110753Z",
+      "season": 2026,
+      "captured_at": "2026-10-18T11:07:53.666885Z",
+      "date": "2026-10-18",
+      "file": "historicals/2026/2026-10-18T110753Z.json",
+      "team_count": 25,
+      "top_team": "BYU",
+      "snapshot_number": 6,
+      "week": 7
     }
   ]
 }
