@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-15T13:57:30.422769Z",
+  "generated_at": "2026-11-22T14:36:20.395123Z",
   "snapshots": [
     {
       "id": "2026-09-13T115431Z",
@@ -111,8 +111,19 @@
       "file": "historicals/2026/2026-11-15T135730Z.json",
       "team_count": 25,
       "top_team": "Utah",
-      "snapshot_number": 10,
-      "week": 11
+      "week": 11,
+      "snapshot_number": 10
+    },
+    {
+      "id": "2026-11-22T143620Z",
+      "season": 2026,
+      "captured_at": "2026-11-22T14:36:20.323422Z",
+      "date": "2026-11-22",
+      "file": "historicals/2026/2026-11-22T143620Z.json",
+      "team_count": 25,
+      "top_team": "Georgia",
+      "snapshot_number": 11,
+      "week": 12
     }
   ]
 }
